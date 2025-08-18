@@ -1,8 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore;
-using RestaurantProject.Domain.Entites;
-
-namespace RestaurantProject.Infrastructure.EntitesConfigurations;
+﻿namespace RestaurantProject.Infrastructure.EntitesConfigurations;
 public class MenuCategoryConfiguration : IEntityTypeConfiguration<MenuCategory>
 {
 	public void Configure(EntityTypeBuilder<MenuCategory> builder)
