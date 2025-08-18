@@ -5,3 +5,4 @@ global using RestaurantProject.Infrastructure;
 global using RestaurantProject.Infrastructure.Data;
 global using Scalar.AspNetCore;
 global using Serilog;
+global using RestaurantProject.Application;

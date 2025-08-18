@@ -2,6 +2,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructureDependencies(builder.Configuration);
 builder.Services.AddApiDependencies(builder.Configuration);
+builder.Services.AddApplicationDependencies();
 
 builder.Host.UseSerilog((context, configuration)
    => configuration.ReadFrom.Configuration(context.Configuration));
@@ -25,5 +26,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseExceptionHandler();
 
 app.Run();
