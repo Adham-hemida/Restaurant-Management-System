@@ -9,4 +9,7 @@ public class Table
 	public string Status { get; set; } = TableStatus.Available;
 
 	public ICollection<Order> Orders { get; set; } = [];
+	public string? UserId { get; set; } = string.Empty;
+	public ApplicationUser? User { get; set; } = default!;
+
 }

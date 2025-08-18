@@ -10,4 +10,7 @@ public class Invoice
 
 	public int OrderId { get; set; }
 	public Order Order { get; set; } = default!;
+	public string UserId { get; set; } = string.Empty;
+	public ApplicationUser User { get; set; } = default!;
+
 }
