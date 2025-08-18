@@ -1,5 +1,5 @@
 ﻿namespace RestaurantProject.Domain.Entites;
-public class MenuItemRating
+public class MenuItemRating : AuditableEntity
 {
 	public int Id { get; set; }
 
@@ -9,10 +9,10 @@ public class MenuItemRating
 	
 	public int MenuItemId { get; set; }
 	public MenuItem MenuItem { get; set; } = default!;
+
 	public int OrderId { get; set; }
 	public Order Order { get; set; } = default!;
-	public string UserId { get; set; } = string.Empty;
-	public ApplicationUser User { get; set; } = default!;
+
 
 }
 

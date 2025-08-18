@@ -1,5 +1,5 @@
 ﻿namespace RestaurantProject.Domain.Entites;
-public class MenuCategory
+public class MenuCategory : AuditableEntity
 {
 	public int Id { get; set; }
 	public string Name { get; set; } = string.Empty;

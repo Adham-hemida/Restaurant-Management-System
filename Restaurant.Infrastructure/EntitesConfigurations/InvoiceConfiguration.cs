@@ -14,5 +14,7 @@ public class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
 
 
 		builder.Property(x => x.PaymentMethod).IsRequired().HasMaxLength(20);
+
+
 	}
 }
