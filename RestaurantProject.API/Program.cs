@@ -1,11 +1,11 @@
-
-
-using Scalar.AspNetCore;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddInfrastructureDependencies(builder.Configuration);
 builder.Services.AddApiDependencies(builder.Configuration);
+
+builder.Host.UseSerilog((context, configuration)
+   => configuration.ReadFrom.Configuration(context.Configuration));
+
 builder.Services.AddControllers();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -19,7 +19,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 	app.MapScalarApiReference();
 }
-
+app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
