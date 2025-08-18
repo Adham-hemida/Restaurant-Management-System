@@ -1,7 +1,7 @@
 ﻿using RestaurantProject.Domain.Consts;
 
 namespace RestaurantProject.Domain.Entites;
-public class Order
+public class Order : AuditableEntity
 {
 	public int Id { get; set; }
 	public string Name { get; set; } = string.Empty;
@@ -13,8 +13,7 @@ public class Order
 
 	public int TableId { get; set; }
 	public Table Table { get; set; } = default!;
-	public string UserId { get; set; } = string.Empty;
-	public ApplicationUser User { get; set; } = default!;
+
 	public ICollection<OrderItem> OrderItems { get; set; } = [];
 	public Invoice Invoice { get; set; } = default!;
 }

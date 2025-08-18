@@ -8,6 +8,8 @@
 				.AddEntityFrameworkStores<ApplicationDbContext>()
 				.AddDefaultTokenProviders();
 
+			services.AddHttpContextAccessor();
+
 			return services;
 		}
 	}

@@ -1,5 +1,5 @@
 ﻿namespace RestaurantProject.Domain.Entites;
-public class UploadedFile
+public class UploadedFile : AuditableEntity
 {
 	public Guid Id { get; set; } = Guid.NewGuid();
 	public string FileName { get; set; } = string.Empty;

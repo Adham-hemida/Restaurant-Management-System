@@ -11,6 +11,5 @@ public class TableConfiguration : IEntityTypeConfiguration<Table>
 		builder.Property(x => x.SeatsCount).IsRequired();
 		builder.Property(x => x.Status).HasMaxLength(20).IsRequired().HasDefaultValue("Available");
 
-
 	}
 }

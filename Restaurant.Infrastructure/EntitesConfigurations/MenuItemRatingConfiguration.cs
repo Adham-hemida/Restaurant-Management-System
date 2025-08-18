@@ -9,5 +9,6 @@ public class MenuItemRatingConfiguration : IEntityTypeConfiguration<MenuItemRati
 	{
 		builder.Property(x => x.Comment).HasMaxLength(500);
 
+	
 	}
 }
