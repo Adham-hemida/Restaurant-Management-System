@@ -50,6 +50,76 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 		return Result.Failure<AuthResponse>(error);
 	}
 
+	public async Task<Result<AuthResponse>> GetRefreshTokenAsync(RefreshTokenRequest refreshTokenRequest, CancellationToken cancellationToken = default)
+	{
+		var userId = _jwtProvider.ValidateToken(refreshTokenRequest.token);
+		if (userId is null)
+			return Result.Failure<AuthResponse>(UserErrors.InvalidJwtTokens);
+
+		var user = await _userManager.FindByIdAsync(userId);
+		if (user is null)
+			return Result.Failure<AuthResponse>(UserErrors.InvalidJwtTokens);
+
+		if (user.IsDisabled)
+			return Result.Failure<AuthResponse>(UserErrors.DisabledUser);
+
+		if (user.LockoutEnd > DateTime.UtcNow)
+			return Result.Failure<AuthResponse>(UserErrors.LockedUser);
+
+		var userRefreshToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshTokenRequest.refreshToken && x.IsActive);
+
+		if (userRefreshToken is null)
+			return Result.Failure<AuthResponse>(UserErrors.InvalidRefreshToken);
+
+		userRefreshToken.RevokedOn = DateTime.UtcNow;
+
+
+		var (newToken, expiresIn) = _jwtProvider.GenerateJwtToken(user);
+
+		var newRefreshToken = GenerateRefreshToken();
+		var newRefreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenExpirationDays);
+
+		user.RefreshTokens.Add(new RefreshToken
+		{
+			Token = newRefreshToken,
+			ExpiresOn = newRefreshTokenExpiration
+		});
+
+		await _userManager.UpdateAsync(user);
+		var response = new AuthResponse(user.Id, user.Email, user.FirstName, user.LastName, newToken, expiresIn, newRefreshToken, newRefreshTokenExpiration);
+		return Result.Success(response);
+
+	}
+
+
+	public async Task<Result> RevokeRefreshTokenAsync(RefreshTokenRequest refreshTokenRequest, CancellationToken cancellationToken = default)
+	{
+		var userId = _jwtProvider.ValidateToken(refreshTokenRequest.token);
+		if (userId is null)
+			return Result.Failure(UserErrors.InvalidJwtTokens);
+
+		var user = await _userManager.FindByIdAsync(userId);
+		if (user is null)
+			return Result.Failure(UserErrors.InvalidJwtTokens);
+
+		if (user.IsDisabled)
+			return Result.Failure(UserErrors.DisabledUser);
+
+		if (user.LockoutEnd > DateTime.UtcNow)
+			return Result.Failure(UserErrors.LockedUser);
+
+		var userRefreshToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshTokenRequest.refreshToken && x.IsActive);
+
+		if (userRefreshToken is null)
+			return Result.Failure(UserErrors.InvalidRefreshToken);
+
+		userRefreshToken.RevokedOn = DateTime.UtcNow;
+
+		await _userManager.UpdateAsync(user);
+		return Result.Success();
+
+	}
+
 	private static string GenerateRefreshToken()
 	{
 		return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
