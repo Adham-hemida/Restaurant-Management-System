@@ -1,0 +1,16 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace RestaurantProject.Application.Settings;
+public class JwtOptions
+{
+	public static string sectionName = "Jwt";
+	[Required]
+	public string Key { get; set; } = string.Empty;
+	[Required]
+	public string Issuer { get; set; } = string.Empty;
+	[Required]
+	public string Audience { get; set; } = string.Empty;
+	[Required]
+	[Range(1, int.MaxValue)]
+	public int ExpiresInMinutes { get; set; }
+}
