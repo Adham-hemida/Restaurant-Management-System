@@ -21,6 +21,7 @@ public static class DependencyInjection
 		services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 		//services.AddScoped<IMenuCategoryService, MenuCategoryService>();
 		services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
+		services.AddScoped<IAuthService, AuthService>();
 
 
 		return services;
