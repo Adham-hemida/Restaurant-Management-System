@@ -91,6 +91,35 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 
 	}
 
+
+	public async Task<Result> RevokeRefreshTokenAsync(RefreshTokenRequest refreshTokenRequest, CancellationToken cancellationToken = default)
+	{
+		var userId = _jwtProvider.ValidateToken(refreshTokenRequest.token);
+		if (userId is null)
+			return Result.Failure(UserErrors.InvalidJwtTokens);
+
+		var user = await _userManager.FindByIdAsync(userId);
+		if (user is null)
+			return Result.Failure(UserErrors.InvalidJwtTokens);
+
+		if (user.IsDisabled)
+			return Result.Failure(UserErrors.DisabledUser);
+
+		if (user.LockoutEnd > DateTime.UtcNow)
+			return Result.Failure(UserErrors.LockedUser);
+
+		var userRefreshToken = user.RefreshTokens.SingleOrDefault(x => x.Token == refreshTokenRequest.refreshToken && x.IsActive);
+
+		if (userRefreshToken is null)
+			return Result.Failure(UserErrors.InvalidRefreshToken);
+
+		userRefreshToken.RevokedOn = DateTime.UtcNow;
+
+		await _userManager.UpdateAsync(user);
+		return Result.Success();
+
+	}
+
 	private static string GenerateRefreshToken()
 	{
 		return Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
