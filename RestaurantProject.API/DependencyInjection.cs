@@ -1,4 +1,6 @@
-﻿namespace RestaurantProject.API
+﻿using RestaurantProject.Application.Settings;
+
+namespace RestaurantProject.API
 {
 	public static class DependencyInjection
 	{
@@ -9,6 +11,11 @@
 				.AddDefaultTokenProviders();
 
 			services.AddHttpContextAccessor();
+
+			services.AddOptions<JwtOptions>()
+		      .Bind(configuration.GetSection(JwtOptions.sectionName))
+		      .ValidateDataAnnotations()
+		      .ValidateOnStart();
 
 			return services;
 		}
