@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RestaurantProject.Application.Interfaces.IAuthentication;
 using RestaurantProject.Domain.Repositories;
+using RestaurantProject.Infrastructure.Implementaion.Authentication;
 using RestaurantProject.Infrastructure.Implementaion.Repositories;
 
 namespace RestaurantProject.Infrastructure;
@@ -13,6 +15,8 @@ public static class DependencyInjection
 
 		services.AddDbContext<ApplicationDbContext>(options =>
 			options.UseSqlServer(connectionString));
+
+		services.AddSingleton<IJwtProvider, JwtProvider>();
 
 		services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 		//services.AddScoped<IMenuCategoryService, MenuCategoryService>();

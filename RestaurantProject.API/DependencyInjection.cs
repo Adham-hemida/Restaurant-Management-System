@@ -1,5 +1,7 @@
-﻿using RestaurantProject.Application.Settings;
-
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using RestaurantProject.Application.Settings;
+using System.Text;
 namespace RestaurantProject.API
 {
 	public static class DependencyInjection
@@ -13,9 +15,39 @@ namespace RestaurantProject.API
 			services.AddHttpContextAccessor();
 
 			services.AddOptions<JwtOptions>()
-		      .Bind(configuration.GetSection(JwtOptions.sectionName))
-		      .ValidateDataAnnotations()
-		      .ValidateOnStart();
+                .Bind(configuration.GetSection(JwtOptions.sectionName))
+                .ValidateDataAnnotations()
+                 .ValidateOnStart();
+
+			var JwtSettings = configuration.GetSection(JwtOptions.sectionName).Get<JwtOptions>();
+
+			services.AddAuthentication(options =>
+			{
+				options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+				options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+
+			})
+				.AddJwtBearer(o =>
+				{
+					o.SaveToken = true;
+					o.TokenValidationParameters = new TokenValidationParameters
+					{
+						ValidateIssuerSigningKey = true,
+						ValidateIssuer = true,
+						ValidateAudience = true,
+						ValidateLifetime = true,
+						ValidIssuer = JwtSettings?.Issuer,
+						ValidAudience = JwtSettings?.Audience,
+						IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtSettings?.Key!))
+					};
+				});
+
+			services.Configure<IdentityOptions>(options =>
+			{
+				options.Password.RequiredLength = 8;
+				options.User.RequireUniqueEmail = true;
+				options.SignIn.RequireConfirmedEmail = true;
+			});
 
 			return services;
 		}
