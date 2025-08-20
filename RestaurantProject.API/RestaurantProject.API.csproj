@@ -17,10 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Restaurant.Infrastructure\RestaurantProject.Infrastructure.csproj" />
     <ProjectReference Include="..\RestaurantProject.Application\RestaurantProject.Application.csproj" />
   </ItemGroup>

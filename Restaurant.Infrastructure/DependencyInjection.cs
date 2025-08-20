@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using RestaurantProject.Infrastructure.Data;
+using RestaurantProject.Domain.Repositories;
+using RestaurantProject.Infrastructure.Implementaion.Repositories;
 
 namespace RestaurantProject.Infrastructure;
 public static class DependencyInjection
@@ -13,6 +13,10 @@ public static class DependencyInjection
 
 		services.AddDbContext<ApplicationDbContext>(options =>
 			options.UseSqlServer(connectionString));
+
+		services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+		//services.AddScoped<IMenuCategoryService, MenuCategoryService>();
+		services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
 
 
 		return services;
