@@ -1,10 +1,4 @@
-﻿using MediatR;
-using RestaurantProject.Application.Abstractions;
-using RestaurantProject.Application.Contracts.Authentication;
-using RestaurantProject.Application.Features.Authentication.Commands.Models;
-using RestaurantProject.Application.Interfaces.IAuthentication;
-
-namespace RestaurantProject.Application.Features.Authentication.Commands.Handlers;
+﻿namespace RestaurantProject.Application.Features.Authentication.Commands.Handlers;
 
 public class LoginUserCommandHandler(IAuthService authService) : IRequestHandler<LoginUserCommand, Result<AuthResponse>>
 {

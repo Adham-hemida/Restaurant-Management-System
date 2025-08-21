@@ -25,7 +25,7 @@ public class AuthsController(IAuthService authService,IMediator mediator) : Cont
 	[HttpPost("Refresh")]
 	public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken = default)
 	{
-		var authResult = await _authService.GetRefreshTokenAsync(request, cancellationToken);
+		var authResult = await _mediator.Send(new GenerateRefreshTokenCommand(request));
 
 		return authResult.IsSuccess ? Ok(authResult.Value) : authResult.ToProblem();
 
