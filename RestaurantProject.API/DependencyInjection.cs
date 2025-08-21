@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using RestaurantProject.API.OpenApiTransformers;
 using RestaurantProject.Application.Settings;
 using System.Text;
 namespace RestaurantProject.API
@@ -48,6 +49,12 @@ namespace RestaurantProject.API
 				options.User.RequireUniqueEmail = true;
 				options.SignIn.RequireConfirmedEmail = true;
 			});
+
+			services.AddOpenApi(options =>
+			{
+				options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+			});
+
 
 			return services;
 		}
