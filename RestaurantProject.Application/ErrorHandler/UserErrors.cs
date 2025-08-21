@@ -25,4 +25,6 @@ public record UserErrors
 	public static readonly Error UserNotFound =
 	  new("User.UserNotFound", "User is not found", StatusCodes.Status404NotFound);
 
+	public static readonly Error DuplicatedEmail =
+	new("User.DuplicatedEmail", "Another user with the same email is already exists", StatusCodes.Status409Conflict);
 }
