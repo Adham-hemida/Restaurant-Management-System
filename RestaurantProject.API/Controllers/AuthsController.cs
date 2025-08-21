@@ -9,15 +9,14 @@ using RestaurantProject.Application.Interfaces.IAuthentication;
 namespace RestaurantProject.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
-public class AuthsController(IAuthService authService,IMediator mediator) : ControllerBase
+public class AuthsController(IMediator mediator) : ControllerBase
 {
-	private readonly IAuthService _authService = authService;
 	private readonly IMediator _mediator = mediator;
 
 	[HttpPost("")]
 	public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken = default)
 	{
-		var authResult = await _mediator.Send(new LoginUserCommand(request));
+		var authResult = await _mediator.Send(new LoginUserCommand(request),cancellationToken);
 		return authResult.IsSuccess ? Ok(authResult.Value) : authResult.ToProblem();
 
 	}
@@ -25,7 +24,7 @@ public class AuthsController(IAuthService authService,IMediator mediator) : Cont
 	[HttpPost("Refresh")]
 	public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken = default)
 	{
-		var authResult = await _mediator.Send(new GenerateRefreshTokenCommand(request));
+		var authResult = await _mediator.Send(new GenerateRefreshTokenCommand(request),cancellationToken);
 
 		return authResult.IsSuccess ? Ok(authResult.Value) : authResult.ToProblem();
 
@@ -34,7 +33,7 @@ public class AuthsController(IAuthService authService,IMediator mediator) : Cont
 	[HttpPost("revoke-refresh-token")]
 	public async Task<IActionResult> RevokeRefreshToken([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken = default)
 	{
-		var result = await _authService.RevokeRefreshTokenAsync(request, cancellationToken);
+		var result = await _mediator.Send(new RevokeRefreshTokenCommand(request),cancellationToken);
 		return result.IsSuccess ? Ok() : result.ToProblem();
 
 	}
