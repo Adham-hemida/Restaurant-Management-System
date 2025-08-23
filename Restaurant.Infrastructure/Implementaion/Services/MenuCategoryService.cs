@@ -1,11 +1,13 @@
 ﻿using Mapster;
 using Microsoft.AspNetCore.Http;
 using RestaurantProject.Application.Abstractions;
+using RestaurantProject.Application.Contracts.Common;
 using RestaurantProject.Application.Contracts.MenuCategory;
 using RestaurantProject.Application.Contracts.MenuItem;
 using RestaurantProject.Application.Contracts.Photo;
 using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IService;
+using System.Linq.Dynamic.Core;
 
 namespace RestaurantProject.Infrastructure.Implementaion.Services;
 public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository, IHttpContextAccessor httpContextAccessor) : IMenuCategoryService
@@ -56,16 +58,29 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		return Result.Success(response);
 
 	}
-	public async Task<IEnumerable<MenuCategoryResponse>> GetAllAsync(CancellationToken cancellationToken)
+	public async Task<Result<PaginatedList<MenuCategoryResponse>>> GetAllAsync(RequestFilters filters,CancellationToken cancellationToken)
 	{
-		return await _menuCategoryRepository
-			.GetAsQueryable()
-			.Where(x => x.IsActive)
-			.AsNoTracking()
-			.ProjectToType<MenuCategoryResponse>()
-			.ToListAsync(cancellationToken);
+		var query =_menuCategoryRepository.GetAsQueryable()
+			.Where(x => x.IsActive);
 
+		if (!string.IsNullOrEmpty(filters.SearchValue))
+		{
+			query = query.Where(x => x.Name.Contains(filters.SearchValue) );
+		}
+
+		if (!string.IsNullOrEmpty(filters.SortColumn))
+		{
+			query = query.OrderBy($"{filters.SortColumn} {filters.SortDirection}");
+		}
+			
+		var source=query.AsNoTracking()
+			.ProjectToType<MenuCategoryResponse>();
+
+		var students = await PaginatedList<MenuCategoryResponse>.CreateAsync(source, filters.PageNumber, filters.PageSize, cancellationToken);
+
+		return Result.Success(students);
 	}
+
 	public async Task<Result<MenuCategoryResponse>> CreateAsync(MenuCategoryRequest request, CancellationToken cancellationToken)
 	{
 		var httpRequest = _httpContextAccessor.HttpContext?.Request;
