@@ -41,6 +41,16 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		return Result.Success(response);
 
 	}
+	public  async Task<IEnumerable<MenuCategoryResponse1>> GetAllAsync( CancellationToken cancellationToken)
+	{
+		return await  _menuCategoryRepository
+			.GetAsQueryable()
+			.Where(x => x.IsActive)
+			.AsNoTracking()
+			.ProjectToType<MenuCategoryResponse1>()
+			.ToListAsync(cancellationToken);
+
+	}
 	public async Task<Result<MenuCategoryResponse>> CreateAsync(MenuCategoryRequest request, CancellationToken cancellationToken)
 	{
 		var httpRequest = _httpContextAccessor.HttpContext?.Request;

@@ -19,8 +19,14 @@ public class MenuCategoriesController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new GetMenuCategoryByIdQuery(id),cancellationToken);
 
 		return result.IsSuccess? Ok(result.Value): result.ToProblem();
-	}	
-	
+	}
+
+	[HttpGet("")]
+	public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+	{	
+		return Ok(await _mediator.Send(new GetAllMenuCategoriesQuery(), cancellationToken));
+	}
+
 	[HttpPost("")]
 	public async Task<IActionResult> Create([FromBody] MenuCategoryRequest request, CancellationToken cancellationToken)
 	{
