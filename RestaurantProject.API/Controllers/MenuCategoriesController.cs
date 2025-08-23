@@ -51,4 +51,12 @@ public class MenuCategoriesController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 
+	[HttpPut("{id}/toggleStatus")]
+	public async Task<IActionResult> ToggleStatus( [FromRoute] int id, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new ToggleMenuCategoryStatusCommand(id),cancellationToken);
+
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+
 }
