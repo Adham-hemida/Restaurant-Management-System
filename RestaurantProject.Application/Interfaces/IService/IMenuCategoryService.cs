@@ -5,7 +5,7 @@ namespace RestaurantProject.Application.Interfaces.IService;
 public interface IMenuCategoryService
 {
 	Task<Result<MenuCategoryResponse>> CreateAsync(MenuCategoryRequest request, CancellationToken cancellationToken);
-	Task<Result<MenuCategoryResponse>> GetAsync(int id, CancellationToken cancellationToken);
-	Task<IEnumerable<MenuCategoryBasicResponse>> GetAllAsync(CancellationToken cancellationToken);
-	Task<Result<MenuCategoryBasicResponse>> UpdateAsync(int id, MenuCategoryRequest request, CancellationToken cancellationToken);
+	Task<Result<MenuCategoryWithMenuItemsResponse>> GetMenuCategoryWithMenuItemsAsync(int id, CancellationToken cancellationToken);
+	Task<IEnumerable<MenuCategoryResponse>> GetAllAsync(CancellationToken cancellationToken);
+	Task<Result<MenuCategoryResponse>> UpdateAsync(int id, MenuCategoryRequest request, CancellationToken cancellationToken);
 }
