@@ -1,3 +1,2 @@
 ﻿namespace RestaurantProject.Application.Features.MenuCategory.Queries.Models;
-
-public record GetMenuCategoryWithMenuItemsQuery(int Id) : IRequest<Result<MenuCategoryWithMenuItemsResponse>>;
+public record GetMenuCategoryByIdQuery(int Id) : IRequest<Result<MenuCategoryResponse>>;

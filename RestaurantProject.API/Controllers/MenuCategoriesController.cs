@@ -14,11 +14,18 @@ namespace RestaurantProject.API.Controllers;
 public class MenuCategoriesController(IMediator mediator) : ControllerBase
 {
 	private readonly IMediator _mediator = mediator;
-
 	[HttpGet("{id}")]
 	public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken cancellationToken)
 	{
-		var result = await _mediator.Send(new GetMenuCategoryByIdQuery(id),cancellationToken);
+		var result = await _mediator.Send(new GetMenuCategoryByIdQuery(id), cancellationToken);
+
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
+
+	[HttpGet("{id}/WithItems")]
+	public async Task<IActionResult> GetMenuCategoryWithMenuItems([FromRoute] int id, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetMenuCategoryWithMenuItemsQuery(id),cancellationToken);
 
 		return result.IsSuccess? Ok(result.Value): result.ToProblem();
 	}

@@ -13,6 +13,18 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 	private readonly IMenuCategoryRepository _menuCategoryRepository = menuCategoryRepository;
 	private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
+	public async Task<Result<MenuCategoryResponse>> GetAsync(int id, CancellationToken cancellationToken)
+	{
+		var menuCategory = await _menuCategoryRepository.GetByIdAsync(id, cancellationToken);
+
+		if (menuCategory is null)
+			return Result.Failure<MenuCategoryResponse>(MenuCategoryErrors.MenuCategoryNotFound);
+
+		return Result.Success(menuCategory.Adapt<MenuCategoryResponse>());
+
+	}
+
+
 	public async Task<Result<MenuCategoryWithMenuItemsResponse>> GetMenuCategoryWithMenuItemsAsync(int id, CancellationToken cancellationToken)
 	{
 		var menuCategory = await _menuCategoryRepository.GetByIdAsync(id, cancellationToken);
@@ -91,4 +103,6 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 
 		return Result.Success(menuCategory.Adapt<MenuCategoryResponse>());
 	}
+
+	
 }
