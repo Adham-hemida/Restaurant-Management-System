@@ -32,6 +32,9 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		if (menuCategory is null)
 			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotFound);
 
+		if(!menuCategory.IsActive)
+			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotActive);
+
 		var response = new MenuCategoryWithMenuItemsResponse
 		(
 			menuCategory.Id,
@@ -104,5 +107,18 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		return Result.Success(menuCategory.Adapt<MenuCategoryResponse>());
 	}
 
-	
+
+	public async Task<Result> ToggleSatausAsync(int id, CancellationToken cancellationToken)
+	{
+		var menuCategory = await _menuCategoryRepository.GetByIdAsync(id, cancellationToken);
+
+		if (menuCategory is null)
+			return Result.Failure(MenuCategoryErrors.MenuCategoryNotFound);
+
+		menuCategory.IsActive = !menuCategory.IsActive;
+		await _menuCategoryRepository.UpdateAsync(menuCategory, cancellationToken);
+		return Result.Success();
+	}
+
+
 }

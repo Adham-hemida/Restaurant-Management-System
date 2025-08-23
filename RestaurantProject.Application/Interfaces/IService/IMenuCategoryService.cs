@@ -9,4 +9,6 @@ public interface IMenuCategoryService
 	Task<Result<MenuCategoryWithMenuItemsResponse>> GetMenuCategoryWithMenuItemsAsync(int id, CancellationToken cancellationToken);
 	Task<Result<MenuCategoryResponse>> CreateAsync(MenuCategoryRequest request, CancellationToken cancellationToken);
 	Task<Result<MenuCategoryResponse>> UpdateAsync(int id, MenuCategoryRequest request, CancellationToken cancellationToken);
+	Task<Result> ToggleSatausAsync(int id, CancellationToken cancellationToken);
+
 }

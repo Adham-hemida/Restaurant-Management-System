@@ -2,5 +2,6 @@
 public record MenuCategoryResponse(
 	int Id,
 	string Name,
-	string Description
+	string Description,
+	bool IsActive
 	);
