@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantProject.Application.Abstractions;
+using RestaurantProject.Application.Contracts.Common;
 using RestaurantProject.Application.Contracts.MenuCategory;
 using RestaurantProject.Application.Features.MenuCategory.Command.Models;
 using RestaurantProject.Application.Features.MenuCategory.Queries.Models;
@@ -31,9 +32,10 @@ public class MenuCategoriesController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpGet("")]
-	public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
+	public async Task<IActionResult> GetAll([FromQuery]RequestFilters filters,CancellationToken cancellationToken = default)
 	{	
-		return Ok(await _mediator.Send(new GetAllMenuCategoriesQuery(), cancellationToken));
+		var result=await _mediator.Send(new GetAllMenuCategoriesQuery(filters), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
 
 	[HttpPost("")]
