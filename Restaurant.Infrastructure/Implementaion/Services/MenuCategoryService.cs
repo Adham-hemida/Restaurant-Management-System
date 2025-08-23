@@ -32,6 +32,9 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		if (menuCategory is null)
 			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotFound);
 
+		if(!menuCategory.IsActive)
+			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotActive);
+
 		var response = new MenuCategoryWithMenuItemsResponse
 		(
 			menuCategory.Id,
