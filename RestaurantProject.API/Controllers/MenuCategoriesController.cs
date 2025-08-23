@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.MenuCategory;
@@ -9,6 +10,7 @@ using RestaurantProject.Application.Interfaces.IService;
 namespace RestaurantProject.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class MenuCategoriesController(IMediator mediator) : ControllerBase
 {
 	private readonly IMediator _mediator = mediator;
@@ -32,7 +34,7 @@ public class MenuCategoriesController(IMediator mediator) : ControllerBase
 	{
 		var result = await _mediator.Send(new AddMenuCategoryCommand(request),cancellationToken);
 
-		return result.IsSuccess? Ok(result.Value): result.ToProblem();
+		return result.IsSuccess? CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, result.Value) : result.ToProblem();
 	}
 
 }
