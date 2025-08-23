@@ -1,5 +1,5 @@
 ﻿namespace RestaurantProject.Application.Contracts.MenuCategory;
-public record MenuCategoryResponse1(
+public record MenuCategoryBasicResponse(
 	int Id,
 	string Name,
 	string Description

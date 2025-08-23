@@ -37,4 +37,11 @@ public class MenuCategoriesController(IMediator mediator) : ControllerBase
 		return result.IsSuccess? CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, result.Value) : result.ToProblem();
 	}
 
+	[HttpPut("{id}")]
+	public async Task<IActionResult> Update([FromRoute] int id, [FromBody] MenuCategoryRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new UpdateMenuCategoryCommand(id, request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+
 }
