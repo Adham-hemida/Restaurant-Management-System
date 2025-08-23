@@ -4,7 +4,7 @@ using RestaurantProject.Application.Abstractions;
 namespace RestaurantProject.Application.ErrorHandler;
 public static class MenuCategoryErrors
 {
-	public static readonly Error MenuCategoryFound =
+	public static readonly Error MenuCategoryNotFound =
 	new("MenuCategory.not_found", "No MenuCategory was found with the given Id", StatusCodes.Status404NotFound);
 
 	public static readonly Error DuplicatedMenuCategory =
