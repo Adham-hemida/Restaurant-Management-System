@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.MenuCategory;
@@ -9,14 +10,22 @@ using RestaurantProject.Application.Interfaces.IService;
 namespace RestaurantProject.API.Controllers;
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class MenuCategoriesController(IMediator mediator) : ControllerBase
 {
 	private readonly IMediator _mediator = mediator;
-
 	[HttpGet("{id}")]
 	public async Task<IActionResult> GetById([FromRoute] int id, CancellationToken cancellationToken)
 	{
-		var result = await _mediator.Send(new GetMenuCategoryByIdQuery(id),cancellationToken);
+		var result = await _mediator.Send(new GetMenuCategoryByIdQuery(id), cancellationToken);
+
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
+
+	[HttpGet("{id}/WithItems")]
+	public async Task<IActionResult> GetMenuCategoryWithMenuItems([FromRoute] int id, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetMenuCategoryWithMenuItemsQuery(id),cancellationToken);
 
 		return result.IsSuccess? Ok(result.Value): result.ToProblem();
 	}
@@ -32,7 +41,14 @@ public class MenuCategoriesController(IMediator mediator) : ControllerBase
 	{
 		var result = await _mediator.Send(new AddMenuCategoryCommand(request),cancellationToken);
 
-		return result.IsSuccess? Ok(result.Value): result.ToProblem();
+		return result.IsSuccess? CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, result.Value) : result.ToProblem();
+	}
+
+	[HttpPut("{id}")]
+	public async Task<IActionResult> Update([FromRoute] int id, [FromBody] MenuCategoryRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new UpdateMenuCategoryCommand(id, request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 
 }

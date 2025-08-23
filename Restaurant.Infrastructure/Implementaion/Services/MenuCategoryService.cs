@@ -13,14 +13,26 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 	private readonly IMenuCategoryRepository _menuCategoryRepository = menuCategoryRepository;
 	private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-	public async Task<Result<MenuCategoryResponse>> GetAsync (int id, CancellationToken cancellationToken)
+	public async Task<Result<MenuCategoryResponse>> GetAsync(int id, CancellationToken cancellationToken)
 	{
 		var menuCategory = await _menuCategoryRepository.GetByIdAsync(id, cancellationToken);
 
 		if (menuCategory is null)
 			return Result.Failure<MenuCategoryResponse>(MenuCategoryErrors.MenuCategoryNotFound);
 
-		var response = new MenuCategoryResponse
+		return Result.Success(menuCategory.Adapt<MenuCategoryResponse>());
+
+	}
+
+
+	public async Task<Result<MenuCategoryWithMenuItemsResponse>> GetMenuCategoryWithMenuItemsAsync(int id, CancellationToken cancellationToken)
+	{
+		var menuCategory = await _menuCategoryRepository.GetByIdAsync(id, cancellationToken);
+
+		if (menuCategory is null)
+			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotFound);
+
+		var response = new MenuCategoryWithMenuItemsResponse
 		(
 			menuCategory.Id,
 			menuCategory.Name,
@@ -41,13 +53,13 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		return Result.Success(response);
 
 	}
-	public  async Task<IEnumerable<MenuCategoryResponse1>> GetAllAsync( CancellationToken cancellationToken)
+	public async Task<IEnumerable<MenuCategoryResponse>> GetAllAsync(CancellationToken cancellationToken)
 	{
-		return await  _menuCategoryRepository
+		return await _menuCategoryRepository
 			.GetAsQueryable()
 			.Where(x => x.IsActive)
 			.AsNoTracking()
-			.ProjectToType<MenuCategoryResponse1>()
+			.ProjectToType<MenuCategoryResponse>()
 			.ToListAsync(cancellationToken);
 
 	}
@@ -56,32 +68,41 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		var httpRequest = _httpContextAccessor.HttpContext?.Request;
 		var origin = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
 
-		var menuCategoryIsExist = await _menuCategoryRepository.GetAsQueryable().AnyAsync(x => x.Name.ToUpper() == request.Name.ToUpper().Trim(), cancellationToken);
+		var menuCategoryIsExist = await _menuCategoryRepository.GetAsQueryable().AnyAsync(x => x.Name.ToUpper().Trim() == request.Name.ToUpper().Trim(), cancellationToken);
 
 		if (menuCategoryIsExist)
 			return Result.Failure<MenuCategoryResponse>(MenuCategoryErrors.DuplicatedMenuCategory);
 
 		var menuCategory = request.Adapt<MenuCategory>();
 		await _menuCategoryRepository.AddAsync(menuCategory, cancellationToken);
-		var response = new MenuCategoryResponse
-			(
-				menuCategory.Id,
-				menuCategory.Name,
-				menuCategory.Description,
-				menuCategory.MenuItems.Select(x => new MenuItemResponse(
-					x.Id,
-					x.Name,
-					x.Description,
-					x.Price,
-					x.UploadedFiles.Select(i => new UploadedFileResponse
-					(
-						i.Id,
-						i.FileName,
-						 $"{origin}/uploads/{i.FileName}"
-					)).ToList()
-				)).ToList()
-			); 
-		
-		return Result.Success(response);
+
+		return Result.Success(menuCategory.Adapt<MenuCategoryResponse>());
 	}
+
+
+	public async Task<Result<MenuCategoryResponse>> UpdateAsync(int id, MenuCategoryRequest request, CancellationToken cancellationToken)
+	{
+		var httpRequest = _httpContextAccessor.HttpContext?.Request;
+		var origin = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
+
+		var menuCategoryIsExist = await _menuCategoryRepository.GetAsQueryable()
+		 .AnyAsync(x => x.Name.ToUpper().Trim() == request.Name.ToUpper().Trim() && x.Id != id, cancellationToken);
+
+		if (menuCategoryIsExist)
+			return Result.Failure<MenuCategoryResponse>(MenuCategoryErrors.DuplicatedMenuCategory);
+
+
+		var menuCategory = await _menuCategoryRepository.GetByIdAsync(id, cancellationToken);
+
+		if (menuCategory is null)
+			return Result.Failure<MenuCategoryResponse>(MenuCategoryErrors.MenuCategoryNotFound);
+
+		menuCategory = request.Adapt(menuCategory);
+		await _menuCategoryRepository.UpdateAsync(menuCategory, cancellationToken);
+
+
+		return Result.Success(menuCategory.Adapt<MenuCategoryResponse>());
+	}
+
+	
 }
