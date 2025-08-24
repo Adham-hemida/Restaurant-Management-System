@@ -21,10 +21,12 @@ public static class DependencyInjection
 		services.AddSingleton<IJwtProvider, JwtProvider>();
 
 		services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-		services.AddScoped<IMenuCategoryService, MenuCategoryService>();
 		services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
+		services.AddScoped<IUploadedFileRepository, UploadedFileRepository>();
+		services.AddScoped<IMenuCategoryService, MenuCategoryService>();
 		services.AddScoped<IAuthService, AuthService>();
 		services.AddScoped<IUserService, UserService>();
+		services.AddScoped<IFileService, FileService>();
 
 
 		return services;

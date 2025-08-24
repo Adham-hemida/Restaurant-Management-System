@@ -29,20 +29,19 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 
 	public async Task<Result<MenuCategoryWithMenuItemsResponse>> GetMenuCategoryWithMenuItemsAsync(int id, CancellationToken cancellationToken)
 	{
-		var menuCategory = await _menuCategoryRepository.GetByIdAsync(id, cancellationToken);
+		var httpRequest = _httpContextAccessor.HttpContext?.Request;
+		var origin = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
 
-		if (menuCategory is null)
-			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotFound);
-
-		if(!menuCategory.IsActive)
-			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotActive);
-
-		var response = new MenuCategoryWithMenuItemsResponse
+		var menuCategory = await _menuCategoryRepository.GetAsQueryable()
+			.Where(x=>x.Id==id && x.IsActive)
+			.Include(x => x.MenuItems)
+			   .ThenInclude(x => x.UploadedFiles)
+			.Select(m => new MenuCategoryWithMenuItemsResponse
 		(
-			menuCategory.Id,
-			menuCategory.Name,
-			menuCategory.Description,
-			menuCategory.MenuItems.Select(x => new MenuItemResponse(
+			m.Id,
+			m.Name,
+			m.Description,
+			m.MenuItems.Select(x => new MenuItemResponse(
 				x.Id,
 				x.Name,
 				x.Description,
@@ -51,12 +50,15 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 				(
 					i.Id,
 					i.FileName,
-					$"{_httpContextAccessor.HttpContext?.Request.Scheme}://{_httpContextAccessor.HttpContext?.Request.Host}/uploads/{i.FileName}"
+					$"{origin}/images/{i.FileName}"
 				)).ToList()
 			)).ToList()
-		);
-		return Result.Success(response);
+		)).SingleOrDefaultAsync(cancellationToken);
 
+		if (menuCategory is null)
+			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotFound);
+
+		return Result.Success(menuCategory);
 	}
 	public async Task<Result<PaginatedList<MenuCategoryResponse>>> GetAllAsync(RequestFilters filters,CancellationToken cancellationToken)
 	{
@@ -83,9 +85,6 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 
 	public async Task<Result<MenuCategoryResponse>> CreateAsync(MenuCategoryRequest request, CancellationToken cancellationToken)
 	{
-		var httpRequest = _httpContextAccessor.HttpContext?.Request;
-		var origin = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
-
 		var menuCategoryIsExist = await _menuCategoryRepository.GetAsQueryable().AnyAsync(x => x.Name.ToUpper().Trim() == request.Name.ToUpper().Trim(), cancellationToken);
 
 		if (menuCategoryIsExist)
@@ -100,8 +99,6 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 
 	public async Task<Result<MenuCategoryResponse>> UpdateAsync(int id, MenuCategoryRequest request, CancellationToken cancellationToken)
 	{
-		var httpRequest = _httpContextAccessor.HttpContext?.Request;
-		var origin = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
 
 		var menuCategoryIsExist = await _menuCategoryRepository.GetAsQueryable()
 		 .AnyAsync(x => x.Name.ToUpper().Trim() == request.Name.ToUpper().Trim() && x.Id != id, cancellationToken);
