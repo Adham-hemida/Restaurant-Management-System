@@ -29,24 +29,19 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 
 	public async Task<Result<MenuCategoryWithMenuItemsResponse>> GetMenuCategoryWithMenuItemsAsync(int id, CancellationToken cancellationToken)
 	{
-		var menuCategory = await _menuCategoryRepository.GetByIdAsync(id, cancellationToken);
-
-		if (menuCategory is null)
-			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotFound);
-
-		if(!menuCategory.IsActive)
-			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotActive);
-
 		var httpRequest = _httpContextAccessor.HttpContext?.Request;
 		var origin = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
 
-
-		var response = new MenuCategoryWithMenuItemsResponse
+		var menuCategory = await _menuCategoryRepository.GetAsQueryable()
+			.Where(x=>x.Id==id && x.IsActive)
+			.Include(x => x.MenuItems)
+			   .ThenInclude(x => x.UploadedFiles)
+			.Select(m => new MenuCategoryWithMenuItemsResponse
 		(
-			menuCategory.Id,
-			menuCategory.Name,
-			menuCategory.Description,
-			menuCategory.MenuItems.Select(x => new MenuItemResponse(
+			m.Id,
+			m.Name,
+			m.Description,
+			m.MenuItems.Select(x => new MenuItemResponse(
 				x.Id,
 				x.Name,
 				x.Description,
@@ -58,9 +53,12 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 					$"{origin}/images/{i.FileName}"
 				)).ToList()
 			)).ToList()
-		);
-		return Result.Success(response);
+		)).SingleOrDefaultAsync(cancellationToken);
 
+		if (menuCategory is null)
+			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotFound);
+
+		return Result.Success(menuCategory);
 	}
 	public async Task<Result<PaginatedList<MenuCategoryResponse>>> GetAllAsync(RequestFilters filters,CancellationToken cancellationToken)
 	{
