@@ -5,5 +5,5 @@ public record MenuCategoryWithMenuItemsResponse(
 	 int Id,
 	 string Name,
 	 string Description,
-	 IEnumerable<MenuItemResponse> MenuItems
+	 IEnumerable<MenuItemWithImagesResponse> MenuItems
 	);

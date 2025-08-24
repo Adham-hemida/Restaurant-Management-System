@@ -41,7 +41,7 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 			m.Id,
 			m.Name,
 			m.Description,
-			m.MenuItems.Select(x => new MenuItemResponse(
+			m.MenuItems.Where(x=>x.IsActive).Select(x => new MenuItemWithImagesResponse(
 				x.Id,
 				x.Name,
 				x.Description,
