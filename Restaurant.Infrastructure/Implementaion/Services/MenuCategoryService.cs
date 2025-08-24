@@ -37,6 +37,10 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		if(!menuCategory.IsActive)
 			return Result.Failure<MenuCategoryWithMenuItemsResponse>(MenuCategoryErrors.MenuCategoryNotActive);
 
+		var httpRequest = _httpContextAccessor.HttpContext?.Request;
+		var origin = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
+
+
 		var response = new MenuCategoryWithMenuItemsResponse
 		(
 			menuCategory.Id,
@@ -51,7 +55,7 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 				(
 					i.Id,
 					i.FileName,
-					$"{_httpContextAccessor.HttpContext?.Request.Scheme}://{_httpContextAccessor.HttpContext?.Request.Host}/uploads/{i.FileName}"
+					$"{origin}/images/{i.FileName}"
 				)).ToList()
 			)).ToList()
 		);
@@ -83,9 +87,6 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 
 	public async Task<Result<MenuCategoryResponse>> CreateAsync(MenuCategoryRequest request, CancellationToken cancellationToken)
 	{
-		var httpRequest = _httpContextAccessor.HttpContext?.Request;
-		var origin = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
-
 		var menuCategoryIsExist = await _menuCategoryRepository.GetAsQueryable().AnyAsync(x => x.Name.ToUpper().Trim() == request.Name.ToUpper().Trim(), cancellationToken);
 
 		if (menuCategoryIsExist)
@@ -100,8 +101,6 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 
 	public async Task<Result<MenuCategoryResponse>> UpdateAsync(int id, MenuCategoryRequest request, CancellationToken cancellationToken)
 	{
-		var httpRequest = _httpContextAccessor.HttpContext?.Request;
-		var origin = $"{httpRequest?.Scheme}://{httpRequest?.Host}";
 
 		var menuCategoryIsExist = await _menuCategoryRepository.GetAsQueryable()
 		 .AnyAsync(x => x.Name.ToUpper().Trim() == request.Name.ToUpper().Trim() && x.Id != id, cancellationToken);
