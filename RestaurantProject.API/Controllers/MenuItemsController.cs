@@ -18,6 +18,12 @@ public class MenuItemsController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new GetMenuItemQuery(menuCategoryId, menuItemd), cancellationToken);
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
+	[HttpGet("{menuItemd}/with-images")]
+	public async Task<IActionResult> GetMenuItemWithImages([FromRoute] int menuCategoryId, [FromRoute] int menuItemd, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetMenuItemWithImagesQuery(menuCategoryId, menuItemd), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
 
 
 }
