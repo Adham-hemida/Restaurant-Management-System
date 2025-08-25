@@ -41,7 +41,7 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 			m.Id,
 			m.Name,
 			m.Description,
-			m.MenuItems.Select(x => new MenuItemResponse(
+			m.MenuItems.Where(x=>x.IsActive).Select(x => new MenuItemWithImagesResponse(
 				x.Id,
 				x.Name,
 				x.Description,
@@ -78,9 +78,9 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		var source=query.AsNoTracking()
 			.ProjectToType<MenuCategoryResponse>();
 
-		var students = await PaginatedList<MenuCategoryResponse>.CreateAsync(source, filters.PageNumber, filters.PageSize, cancellationToken);
+		var menuCategories = await PaginatedList<MenuCategoryResponse>.CreateAsync(source, filters.PageNumber, filters.PageSize, cancellationToken);
 
-		return Result.Success(students);
+		return Result.Success(menuCategories);
 	}
 
 	public async Task<Result<MenuCategoryResponse>> CreateAsync(MenuCategoryRequest request, CancellationToken cancellationToken)

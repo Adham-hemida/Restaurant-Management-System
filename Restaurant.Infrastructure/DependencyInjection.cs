@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using RestaurantProject.Application.Interfaces.IAuthentication;
 using RestaurantProject.Application.Interfaces.IService;
+using RestaurantProject.Domain.Interfaces;
 using RestaurantProject.Domain.Repositories;
 using RestaurantProject.Infrastructure.Implementaion.Authentication;
 using RestaurantProject.Infrastructure.Implementaion.Repositories;
@@ -22,8 +23,10 @@ public static class DependencyInjection
 
 		services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 		services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
+		services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 		services.AddScoped<IUploadedFileRepository, UploadedFileRepository>();
 		services.AddScoped<IMenuCategoryService, MenuCategoryService>();
+		services.AddScoped<IMenuItemService, MenuItemService>();
 		services.AddScoped<IAuthService, AuthService>();
 		services.AddScoped<IUserService, UserService>();
 		services.AddScoped<IFileService, FileService>();

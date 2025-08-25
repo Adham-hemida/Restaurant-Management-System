@@ -1,4 +1,8 @@
-﻿using RestaurantProject.Application.Contracts.Photo;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace RestaurantProject.Application.Contracts.MenuItem;
 public record MenuItemResponse(
@@ -6,5 +10,5 @@ public record MenuItemResponse(
 	string Name,
 	string Description,
 	decimal Price,
-	IEnumerable<UploadedFileResponse> UploadedFiles
+	bool IsActive
 	);
