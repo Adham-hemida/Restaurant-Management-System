@@ -1,5 +1,6 @@
 ﻿using Mapster;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Hybrid;
 using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.Common;
 using RestaurantProject.Application.Contracts.MenuCategory;
@@ -182,5 +183,22 @@ public class MenuItemService(IMenuCategoryRepository menuCategoryRepository,
 		await _menuItemRepository.UpdateAsync(menuItem, cancellationToken);
 		return Result.Success();
 	}
+
+
+	public async Task<Result> ToggleSatausAsync(int menuCategoryId, int menuItemId, CancellationToken cancellationToken = default)
+	{
+		var menuItem = await _menuItemRepository.GetAsQueryable()
+			.Where(x => x.Id == menuItemId && x.CategoryId == menuCategoryId)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (menuItem is null)
+			return Result.Failure(MenuItemErrors.MenuItemNotFound);
+
+		menuItem.IsActive = !menuItem.IsActive;
+		await _menuItemRepository.UpdateAsync(menuItem, cancellationToken);
+
+		return Result.Success();
+	}
+
 
 }
