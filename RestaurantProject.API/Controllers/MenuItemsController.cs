@@ -43,6 +43,12 @@ public class MenuItemsController(IMediator mediator) : ControllerBase
 		return result.IsSuccess
 			? CreatedAtAction(nameof(GetById), new { menuCategoryId, menuItemId=result.Value.Id }, result.Value)
 			: result.ToProblem();
+	}
 
+	[HttpPut("{menuItemId}")]
+	public async Task<IActionResult> Update([FromRoute] int menuCategoryId, [FromRoute] int menuItemId, [FromBody] MenuItemRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new UpdateMenuItemCommand(menuCategoryId, menuItemId, request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 }

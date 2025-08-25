@@ -136,4 +136,30 @@ public class MenuItemService(IMenuCategoryRepository menuCategoryRepository,
 		await _menuItemRepository.AddAsync(menuItem, cancellationToken);
 		return Result.Success(menuItem.Adapt<MenuItemResponse>());
 	}
+
+	public async Task<Result> UpdateAsync(int menuCategoryId, int menuItemId, MenuItemRequest request, CancellationToken cancellationToken)
+	{
+		var menuCategoryIsExist = await _menuCategoryRepository.GetAsQueryable()
+	.AnyAsync(x => x.Id == menuCategoryId && x.IsActive, cancellationToken);
+
+		if (!menuCategoryIsExist)
+			return Result.Failure(MenuCategoryErrors.MenuCategoryNotFound);
+
+		var menuItemIsExist = await _menuItemRepository.GetAsQueryable()
+			.AnyAsync(x => x.Name.ToUpper() == request.Name.ToUpper() && x.CategoryId == menuCategoryId && x.Id !=menuItemId, cancellationToken);
+
+		if (menuItemIsExist)
+			return Result.Failure(MenuItemErrors.DuplicatedMenuItem);
+
+		var menuItem = await _menuItemRepository.GetAsQueryable()
+			.Where(x => x.Id == menuItemId && x.CategoryId==menuCategoryId && x.IsActive)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (menuItem is null)
+			return Result.Failure(MenuItemErrors.MenuItemNotFound);
+
+		menuItem= request.Adapt(menuItem);
+		await _menuItemRepository.UpdateAsync(menuItem, cancellationToken);
+		return Result.Success();
+	}
 }
