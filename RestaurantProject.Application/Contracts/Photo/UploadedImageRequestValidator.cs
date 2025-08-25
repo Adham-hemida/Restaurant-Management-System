@@ -1,9 +1,5 @@
 ﻿using RestaurantProject.Application.Contracts.Common;
 using RestaurantProject.Application.Settings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 namespace RestaurantProject.Application.Contracts.Photo;
 public class UploadImageRequestValidator : AbstractValidator<UploadImageRequest>
 {

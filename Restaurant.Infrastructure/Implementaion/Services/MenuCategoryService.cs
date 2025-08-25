@@ -78,9 +78,9 @@ public class MenuCategoryService(IMenuCategoryRepository menuCategoryRepository,
 		var source=query.AsNoTracking()
 			.ProjectToType<MenuCategoryResponse>();
 
-		var students = await PaginatedList<MenuCategoryResponse>.CreateAsync(source, filters.PageNumber, filters.PageSize, cancellationToken);
+		var menuCategories = await PaginatedList<MenuCategoryResponse>.CreateAsync(source, filters.PageNumber, filters.PageSize, cancellationToken);
 
-		return Result.Success(students);
+		return Result.Success(menuCategories);
 	}
 
 	public async Task<Result<MenuCategoryResponse>> CreateAsync(MenuCategoryRequest request, CancellationToken cancellationToken)
