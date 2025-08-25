@@ -5,10 +5,10 @@ public class MenuCategoryRequestValidator : AbstractValidator<MenuCategoryReques
 {
 	public MenuCategoryRequestValidator()
 	{
-			
+
 		RuleFor(x => x.Name)
-			.Must(x => !string.IsNullOrWhiteSpace(x))
-			.WithMessage("Name is required.")
+            .NotEmpty()
+            .WithMessage("Name is required.")
 			.MaximumLength(50)
 			.WithMessage("Name should be  50 characters.");
 

@@ -117,4 +117,23 @@ public class MenuItemService(IMenuCategoryRepository menuCategoryRepository,
 		return Result.Success(menuItems);
 	}
 
+    public async Task<Result<MenuItemResponse>> AddAsync(int menuCategoryId, MenuItemRequest request,CancellationToken cancellationToken)
+	{
+		var menuCategoryIsExist = await _menuCategoryRepository.GetAsQueryable()
+			.AnyAsync(x => x.Id == menuCategoryId && x.IsActive, cancellationToken);
+
+		if (!menuCategoryIsExist)
+			return Result.Failure<MenuItemResponse>(MenuCategoryErrors.MenuCategoryNotFound);
+
+		var menuItemIsExist = await _menuItemRepository.GetAsQueryable()
+			.AnyAsync(x => x.Name.ToUpper() == request.Name.ToUpper() && x.CategoryId==menuCategoryId, cancellationToken);
+
+		if (menuItemIsExist)
+			return Result.Failure<MenuItemResponse>(MenuItemErrors.DuplicatedMenuItem);
+
+		var menuItem = request.Adapt<MenuItem>();
+		menuItem.CategoryId = menuCategoryId;
+		await _menuItemRepository.AddAsync(menuItem, cancellationToken);
+		return Result.Success(menuItem.Adapt<MenuItemResponse>());
+	}
 }
