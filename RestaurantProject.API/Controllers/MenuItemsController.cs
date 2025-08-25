@@ -51,4 +51,11 @@ public class MenuItemsController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new UpdateMenuItemCommand(menuCategoryId, menuItemId, request), cancellationToken);
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
+	
+	[HttpPut("{menuItemId}/change-price")]
+	public async Task<IActionResult> ChangePrice([FromRoute] int menuCategoryId, [FromRoute] int menuItemId, [FromBody]ChangePriceRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new ChangePriceCommand(menuCategoryId, menuItemId, request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 }
