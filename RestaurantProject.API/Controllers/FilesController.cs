@@ -17,6 +17,6 @@ public class FilesController(IMediator mediator) : ControllerBase
 	public async Task<IActionResult> UploadImage([FromRoute]int menuItemId,[FromForm] UploadImageRequest request, CancellationToken cancellationToken)
 	{
 		var result = await _mediator.Send(new UploadImageCommand(menuItemId,request), cancellationToken);
-		return Created();
+		return result.IsSuccess?Created():result.ToProblem();
 	}
 }
