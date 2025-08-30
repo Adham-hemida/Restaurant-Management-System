@@ -25,11 +25,13 @@ public static class DependencyInjection
 		services.AddScoped<IMenuCategoryRepository, MenuCategoryRepository>();
 		services.AddScoped<IMenuItemRepository, MenuItemRepository>();
 		services.AddScoped<IUploadedFileRepository, UploadedFileRepository>();
+		services.AddScoped<ITableRepository, TableRepository>();
 		services.AddScoped<IMenuCategoryService, MenuCategoryService>();
 		services.AddScoped<IMenuItemService, MenuItemService>();
 		services.AddScoped<IAuthService, AuthService>();
 		services.AddScoped<IUserService, UserService>();
 		services.AddScoped<IFileService, FileService>();
+		services.AddScoped<ITableService, TableService>();
 
 
 		return services;
