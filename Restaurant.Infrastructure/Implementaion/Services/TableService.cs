@@ -1,4 +1,5 @@
-﻿using RestaurantProject.Application.Abstractions;
+﻿using Mapster;
+using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.Table;
 using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IService;
@@ -23,5 +24,16 @@ public class TableService(ITableRepository tableRepository): ITableService
 			return Result.Failure<TableResponse>(TableErrors.TableNotFound);
 
 		return Result.Success(table);
+	}
+
+	public async Task<Result<IEnumerable<TableResponse>>> GetAllAsync(CancellationToken cancellationToken)
+	{
+		var tables=await _tableRepository.GetAsQueryable()
+			.AsNoTracking()
+			.ProjectToType<TableResponse>()
+			.ToListAsync(cancellationToken);
+
+		return Result.Success<IEnumerable<TableResponse>>(tables);
+
 	}
 }

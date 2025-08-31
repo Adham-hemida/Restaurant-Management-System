@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RestaurantProject.Application.Contracts.Common;
+using RestaurantProject.Application.Features.MenuItem.Queries.Models;
 using RestaurantProject.Application.Features.Table.Queries.Models;
 
 namespace RestaurantProject.API.Controllers;
@@ -19,4 +21,12 @@ public class TablesController(IMediator mediator) : ControllerBase
 
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
+
+	[HttpGet("")]
+	public async Task<IActionResult> GetAll( CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetAllTablesQuery(), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
+
 }
