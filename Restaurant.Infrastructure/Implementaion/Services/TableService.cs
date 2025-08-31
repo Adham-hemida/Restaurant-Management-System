@@ -36,4 +36,17 @@ public class TableService(ITableRepository tableRepository): ITableService
 		return Result.Success<IEnumerable<TableResponse>>(tables);
 
 	}
+
+	public async Task<Result<TableResponse>> AddAsync(AddTableRequest request,CancellationToken cancellationToken)
+	{
+		var tableIsExist=await _tableRepository.GetAsQueryable()
+			.AnyAsync(t => t.TableNumber == request.TableNumber, cancellationToken);
+
+		if (tableIsExist)
+			return Result.Failure<TableResponse>(TableErrors.DuplicatedTable);
+
+		var table = request.Adapt<Table>();
+		await _tableRepository.AddAsync(table, cancellationToken);
+		return Result.Success(table.Adapt<TableResponse>());
+	}
 }
