@@ -44,5 +44,12 @@ public class TablesController(IMediator mediator) : ControllerBase
 			: result.ToProblem();
 	}
 
+	[HttpPut("{id}")]
+	public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateTableRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new UpdateTableCommand( id, request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+
 
 }
