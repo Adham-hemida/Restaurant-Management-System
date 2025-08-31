@@ -1,4 +1,5 @@
-﻿using Mapster;
+﻿using Azure.Core;
+using Mapster;
 using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.Table;
 using RestaurantProject.Application.ErrorHandler;
@@ -63,12 +64,28 @@ public class TableService(ITableRepository tableRepository): ITableService
 		if(tableIsExist)
 			return Result.Failure(TableErrors.DuplicatedTable);
 
-		var ordersStatus = TableStatus.GetAllTablesStatus();
+		var tablesStatus = TableStatus.GetAllTablesStatus();
 
-		if(!ordersStatus.Contains(request.Status))
+		if(!tablesStatus.Contains(request.Status))
 			return Result.Failure(TableErrors.InvalidTableStatus);
 
 		table = request.Adapt(table);
+		await _tableRepository.UpdateAsync(table, cancellationToken);
+		return Result.Success();
+	}
+
+	public async Task<Result> UpdateStatusAsync(int id, string status, CancellationToken cancellationToken)
+	{
+		var table = await _tableRepository.GetByIdAsync(id, cancellationToken);
+		if (table is null)
+			return Result.Failure(TableErrors.TableNotFound);
+
+		var tablesStatus = TableStatus.GetAllTablesStatus();
+
+		if (!tablesStatus.Contains(status))
+			return Result.Failure(TableErrors.InvalidTableStatus);
+
+		table.Status = status;
 		await _tableRepository.UpdateAsync(table, cancellationToken);
 		return Result.Success();
 	}
