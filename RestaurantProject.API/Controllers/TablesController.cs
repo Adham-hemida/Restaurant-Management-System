@@ -58,5 +58,11 @@ public class TablesController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 
+	[HttpPut("{id}/toggleAvailability-status")]
+	public async Task<IActionResult> ToggleAvailability([FromRoute] int id, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new ToggleAvailabilityCommand(id), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 
 }

@@ -89,4 +89,22 @@ public class TableService(ITableRepository tableRepository): ITableService
 		await _tableRepository.UpdateAsync(table, cancellationToken);
 		return Result.Success();
 	}
+
+	public async Task<Result> ToggleAvailabilityAsync(int id, CancellationToken cancellationToken)
+	{
+		var table = await _tableRepository.GetByIdAsync(id, cancellationToken);
+		if (table is null)
+			return Result.Failure(TableErrors.TableNotFound);
+
+		if (table.Status == TableStatus.Available)
+			table.Status = TableStatus.Unavailable;
+
+		else if (table.Status == TableStatus.Unavailable)
+			table.Status = TableStatus.Available;
+		else
+			return Result.Failure(TableErrors.InvalidTableStatus);
+
+		await _tableRepository.UpdateAsync(table, cancellationToken);
+		return Result.Success();
+	}
 }
