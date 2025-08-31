@@ -27,9 +27,9 @@ public class TablesController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpGet("")]
-	public async Task<IActionResult> GetAll( CancellationToken cancellationToken)
+	public async Task<IActionResult> GetAll([FromQuery] RequestFilters filters, CancellationToken cancellationToken)
 	{
-		var result = await _mediator.Send(new GetAllTablesQuery(), cancellationToken);
+		var result = await _mediator.Send(new GetAllTablesQuery(filters), cancellationToken);
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
 
@@ -58,5 +58,11 @@ public class TablesController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 
+	[HttpPut("{id}/toggleAvailability-status")]
+	public async Task<IActionResult> ToggleAvailability([FromRoute] int id, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new ToggleAvailabilityCommand(id), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 
 }

@@ -1,10 +1,14 @@
 ﻿using Azure.Core;
 using Mapster;
 using RestaurantProject.Application.Abstractions;
+using RestaurantProject.Application.Contracts.Common;
+using RestaurantProject.Application.Contracts.MenuItem;
 using RestaurantProject.Application.Contracts.Table;
 using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IService;
 using RestaurantProject.Domain.Consts;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Linq.Dynamic.Core;
 
 namespace RestaurantProject.Infrastructure.Implementaion.Services;
 public class TableService(ITableRepository tableRepository): ITableService
@@ -28,14 +32,23 @@ public class TableService(ITableRepository tableRepository): ITableService
 		return Result.Success(table);
 	}
 
-	public async Task<Result<IEnumerable<TableResponse>>> GetAllAsync(CancellationToken cancellationToken)
+	public async Task<Result<PaginatedList<TableResponse>>>GetAllAsync(RequestFilters filters, CancellationToken cancellationToken)
 	{
-		var tables=await _tableRepository.GetAsQueryable()
-			.AsNoTracking()
-			.ProjectToType<TableResponse>()
-			.ToListAsync(cancellationToken);
+		var query =  _tableRepository.GetAsQueryable();
+		if (!string.IsNullOrEmpty(filters.SearchValue))
+		{
+			query = query.Where(x => x.Status.Contains(filters.SearchValue));
+		}
+		if (!string.IsNullOrEmpty(filters.SortColumn))
+		{
+			query = query.OrderBy($"{filters.SortColumn} {filters.SortDirection}");
+		}
+			
+		var source = query.AsNoTracking()
+			.ProjectToType<TableResponse>();
 
-		return Result.Success<IEnumerable<TableResponse>>(tables);
+		var tables= await PaginatedList<TableResponse>.CreateAsync( source, filters.PageNumber, filters.PageSize, cancellationToken);
+		return Result.Success(tables);
 
 	}
 
@@ -86,6 +99,24 @@ public class TableService(ITableRepository tableRepository): ITableService
 			return Result.Failure(TableErrors.InvalidTableStatus);
 
 		table.Status = status;
+		await _tableRepository.UpdateAsync(table, cancellationToken);
+		return Result.Success();
+	}
+
+	public async Task<Result> ToggleAvailabilityAsync(int id, CancellationToken cancellationToken)
+	{
+		var table = await _tableRepository.GetByIdAsync(id, cancellationToken);
+		if (table is null)
+			return Result.Failure(TableErrors.TableNotFound);
+
+		if (table.Status == TableStatus.Available)
+			table.Status = TableStatus.Unavailable;
+
+		else if (table.Status == TableStatus.Unavailable)
+			table.Status = TableStatus.Available;
+		else
+			return Result.Failure(TableErrors.InvalidTableStatus);
+
 		await _tableRepository.UpdateAsync(table, cancellationToken);
 		return Result.Success();
 	}
