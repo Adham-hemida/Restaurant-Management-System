@@ -29,6 +29,8 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
 	{
 		var result = await _mediator.Send(new AddOrderItemCommand(orderId, menuItemId, request), cancellationToken);
 
-		return result.IsSuccess ? Ok( result.Value)	: result.ToProblem();
+		return result.IsSuccess 
+			? CreatedAtAction(nameof(GetById),new {orderId, menuItemId , orderItemId=result.Value.Id},result.Value)	
+			: result.ToProblem();
 	}
 }
