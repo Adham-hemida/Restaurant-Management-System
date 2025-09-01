@@ -24,6 +24,13 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
 
+	[HttpGet("~/api/Order/{orderId}/OrderItems")]
+	public async Task<IActionResult> GetAll([FromRoute] int orderId, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetAllOrderItemsQuery(orderId), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
+
 	[HttpPost("")]
 	public async Task<IActionResult> Create([FromRoute] int orderId,[FromRoute] int menuItemId, [FromBody] AddOrderItemRequest request, CancellationToken cancellationToken)
 	{

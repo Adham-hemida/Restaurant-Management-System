@@ -47,7 +47,25 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 
 		return Result.Success(orderItem);
 	}
+	public async Task<Result<IEnumerable<OrderItemResponse>>> GetAllAsync(int orderId, CancellationToken cancellationToken)
+	{
+		var orderIsExist = await _orderRepository.GetAsQueryable()
+			.AnyAsync(x => x.Id == orderId && x.IsActive, cancellationToken);
 
+		if (!orderIsExist)
+			return Result.Failure<IEnumerable<OrderItemResponse>>(OrderErrors.OrderNotFound);
+
+		var orderItems = await _orderItemRepository.GetAsQueryable()
+			.Where(x => x.OrderId == orderId)
+			.AsNoTracking()
+			.ProjectToType<OrderItemResponse>()
+			.ToListAsync(cancellationToken);
+
+		if (!orderItems.Any())
+			return Result.Failure<IEnumerable<OrderItemResponse>>(OrderItemErrors.NoOrderItemsFound);
+
+		return Result.Success<IEnumerable<OrderItemResponse>>(orderItems);
+	}
 
 	public async Task<Result<OrderItemResponse>> AddAsync(int orderId, int menuItemId, AddOrderItemRequest request, CancellationToken cancellationToken)
 	{
