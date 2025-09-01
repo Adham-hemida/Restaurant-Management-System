@@ -7,6 +7,7 @@ using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IService;
 using RestaurantProject.Domain.Consts;
 using RestaurantProject.Domain.Entites;
+using System.Runtime.CompilerServices;
 
 namespace RestaurantProject.Infrastructure.Implementaion.Services;
 public class OrderItemService(IOrderItemRepository orderItemRepository,
@@ -46,7 +47,25 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 
 		return Result.Success(orderItem);
 	}
+	public async Task<Result<IEnumerable<OrderItemResponse>>> GetAllAsync(int orderId, CancellationToken cancellationToken)
+	{
+		var orderIsExist = await _orderRepository.GetAsQueryable()
+			.AnyAsync(x => x.Id == orderId && x.IsActive, cancellationToken);
 
+		if (!orderIsExist)
+			return Result.Failure<IEnumerable<OrderItemResponse>>(OrderErrors.OrderNotFound);
+
+		var orderItems = await _orderItemRepository.GetAsQueryable()
+			.Where(x => x.OrderId == orderId)
+			.AsNoTracking()
+			.ProjectToType<OrderItemResponse>()
+			.ToListAsync(cancellationToken);
+
+		if (!orderItems.Any())
+			return Result.Failure<IEnumerable<OrderItemResponse>>(OrderItemErrors.NoOrderItemsFound);
+
+		return Result.Success<IEnumerable<OrderItemResponse>>(orderItems);
+	}
 
 	public async Task<Result<OrderItemResponse>> AddAsync(int orderId, int menuItemId, AddOrderItemRequest request, CancellationToken cancellationToken)
 	{
@@ -141,6 +160,27 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 		return Result.Success();
 	}
 
+	public async Task<Result> DeleteAllAsync(int orderId, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetByIdAsync(orderId, cancellationToken);
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+	
+		if (order.Status != OrderStatus.Pending)
+			return Result.Failure(OrderErrors.OrderCannotBeModified);
+	
+		var orderItems = await _orderItemRepository.GetAsQueryable()
+			.Where(x => x.OrderId == orderId)
+			.ToListAsync(cancellationToken);
+	
+		if (!orderItems.Any())
+			return Result.Failure(OrderItemErrors.NoOrderItemsFound);
+		order.TotalAmount = 0;
+	
+		await _orderItemRepository.DeleteRange(orderItems, cancellationToken);
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
+	}
 
 	private decimal CalculateTotalPrice(double quantity, decimal unitPrice, double? discount)
 	{

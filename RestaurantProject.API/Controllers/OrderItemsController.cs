@@ -24,6 +24,13 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
 
+	[HttpGet("~/api/Order/{orderId}/OrderItems")]
+	public async Task<IActionResult> GetAll([FromRoute] int orderId, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetAllOrderItemsQuery(orderId), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
+
 	[HttpPost("")]
 	public async Task<IActionResult> Create([FromRoute] int orderId,[FromRoute] int menuItemId, [FromBody] AddOrderItemRequest request, CancellationToken cancellationToken)
 	{
@@ -45,6 +52,13 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
 	public async Task<IActionResult> Delete([FromRoute] int orderId, [FromRoute] int menuItemId, [FromRoute] int orderItemId, CancellationToken cancellationToken)
 	{
 		var result = await _mediator.Send(new DeleteOrderItemCommand(orderId, menuItemId, orderItemId), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+
+	[HttpDelete("~/api/Order/{orderId}/OrderItems")]
+	public async Task<IActionResult> DeleteRange([FromRoute] int orderId, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new DeleteAllOrderItemsCommand(orderId), cancellationToken);
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 
