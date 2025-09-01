@@ -40,5 +40,12 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new UpdateOrderItemCommand(orderId, menuItemId, orderItemId,request), cancellationToken);
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
+	
+	[HttpDelete("{orderItemId}")]
+	public async Task<IActionResult> Delete([FromRoute] int orderId, [FromRoute] int menuItemId, [FromRoute] int orderItemId, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new DeleteOrderItemCommand(orderId, menuItemId, orderItemId), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 
 }

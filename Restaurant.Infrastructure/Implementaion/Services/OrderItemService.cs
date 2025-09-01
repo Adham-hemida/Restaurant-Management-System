@@ -114,6 +114,34 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 
 	}
 
+	public async Task<Result> DeleteAsync (int orderId, int menuItemId, int orderItemId, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetByIdAsync(orderId, cancellationToken);
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+		
+		if (order.Status != OrderStatus.Pending)
+			return Result.Failure(OrderErrors.OrderCannotBeModified);
+		
+		var menuItem = await _menuItemRepository.GetByIdAsync(menuItemId, cancellationToken);
+		if (menuItem is null)
+			return Result.Failure(MenuItemErrors.MenuItemNotFound);
+		
+		var orderItem = await _orderItemRepository.GetAsQueryable()
+			.Where(x => x.Id == orderItemId && x.OrderId == orderId && x.MenuItemId == menuItemId)
+			.SingleOrDefaultAsync(cancellationToken);
+	
+		if (orderItem is null)
+			return Result.Failure(OrderItemErrors.OrderNotFound);
+	
+		order.TotalAmount -= orderItem.TotalPrice;
+		
+		await _orderItemRepository.DeleteAsync(orderItem, cancellationToken);
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
+	}
+
+
 	private decimal CalculateTotalPrice(double quantity, decimal unitPrice, double? discount)
 	{
 		return (decimal)quantity * unitPrice * (1 - ((decimal)(discount ?? 0) / 100));
