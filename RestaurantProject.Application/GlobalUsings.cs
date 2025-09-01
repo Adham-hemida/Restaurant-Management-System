@@ -13,4 +13,6 @@ global using RestaurantProject.Application.Interfaces.IService;
 global using RestaurantProject.Application.Features.MenuCategory.Command.Handlers;
 global using RestaurantProject.Application.Contracts.MenuItem;
 global using RestaurantProject.Application.Contracts.Table;
+global using RestaurantProject.Application.Contracts.OrderItem;
+global using RestaurantProject.Application.Features.OrderItem.Commands.Models;
 
