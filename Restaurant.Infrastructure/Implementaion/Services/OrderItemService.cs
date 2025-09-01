@@ -1,9 +1,12 @@
-﻿using Mapster;
+﻿using Azure.Core;
+using Mapster;
 using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.MenuItem;
 using RestaurantProject.Application.Contracts.OrderItem;
 using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IService;
+using RestaurantProject.Domain.Consts;
+using RestaurantProject.Domain.Entites;
 
 namespace RestaurantProject.Infrastructure.Implementaion.Services;
 public class OrderItemService(IOrderItemRepository orderItemRepository,
@@ -52,6 +55,9 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 		if (order is null)
 			return Result.Failure<OrderItemResponse>(OrderErrors.OrderNotFound);
 
+		if(order.Status!=OrderStatus.Pending)
+			return Result.Failure<OrderItemResponse>(OrderErrors.OrderCannotBeModified);
+
 		var menuItem = await _menuItemRepository.GetByIdAsync(menuItemId, cancellationToken);
 
 		if (menuItem is null)
@@ -59,8 +65,8 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 
 		var orderItem=request.Adapt<OrderItem>();
 		orderItem.UnitPrice = menuItem.Price;
-		orderItem.TotalPrice = (decimal)orderItem.Quantity * orderItem.UnitPrice * (1 - ((decimal)(request.Discount ?? 0) / 100));
-	
+		orderItem.TotalPrice = CalculateTotalPrice(orderItem.Quantity, orderItem.UnitPrice, request.Discount);
+
 		orderItem.OrderId = orderId;
 		orderItem.MenuItemId = menuItemId;
 		order.TotalAmount += orderItem.TotalPrice;
@@ -71,4 +77,74 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 		return Result.Success(orderItem.Adapt<OrderItemResponse>());
 
 	}
+	public async Task<Result> UpdateAsync(int orderId, int menuItemId,int orderItemId, AddOrderItemRequest request, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetByIdAsync(orderId, cancellationToken);
+
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+
+		if (order.Status != OrderStatus.Pending)
+			return Result.Failure(OrderErrors.OrderCannotBeModified);
+
+		var menuItem = await _menuItemRepository.GetByIdAsync(menuItemId, cancellationToken);
+
+		if (menuItem is null)
+			return Result.Failure(MenuItemErrors.MenuItemNotFound);
+
+        var orderItem=await _orderItemRepository.GetAsQueryable()
+			.Where(x => x.Id == orderItemId && x.OrderId == orderId && x.MenuItemId == menuItemId)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (orderItem is null)
+			return Result.Failure(OrderItemErrors.OrderNotFound);
+
+		order.TotalAmount -= orderItem.TotalPrice;
+		orderItem.Quantity = request.Quantity;
+
+		orderItem.Discount = request.Discount;
+		orderItem.Notes = request.Notes;
+		
+		orderItem.TotalPrice = CalculateTotalPrice(orderItem.Quantity, orderItem.UnitPrice, request.Discount);
+		order.TotalAmount += orderItem.TotalPrice;
+	
+		await _orderItemRepository.UpdateAsync(orderItem, cancellationToken);
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success(orderItem.Adapt<OrderItemResponse>());
+
+	}
+
+	public async Task<Result> DeleteAsync (int orderId, int menuItemId, int orderItemId, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetByIdAsync(orderId, cancellationToken);
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+		
+		if (order.Status != OrderStatus.Pending)
+			return Result.Failure(OrderErrors.OrderCannotBeModified);
+		
+		var menuItem = await _menuItemRepository.GetByIdAsync(menuItemId, cancellationToken);
+		if (menuItem is null)
+			return Result.Failure(MenuItemErrors.MenuItemNotFound);
+		
+		var orderItem = await _orderItemRepository.GetAsQueryable()
+			.Where(x => x.Id == orderItemId && x.OrderId == orderId && x.MenuItemId == menuItemId)
+			.SingleOrDefaultAsync(cancellationToken);
+	
+		if (orderItem is null)
+			return Result.Failure(OrderItemErrors.OrderNotFound);
+	
+		order.TotalAmount -= orderItem.TotalPrice;
+		
+		await _orderItemRepository.DeleteAsync(orderItem, cancellationToken);
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
+	}
+
+
+	private decimal CalculateTotalPrice(double quantity, decimal unitPrice, double? discount)
+	{
+		return (decimal)quantity * unitPrice * (1 - ((decimal)(discount ?? 0) / 100));
+	}
+
 }

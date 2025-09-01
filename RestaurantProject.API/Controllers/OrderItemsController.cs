@@ -33,4 +33,19 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
 			? CreatedAtAction(nameof(GetById),new {orderId, menuItemId , orderItemId=result.Value.Id},result.Value)	
 			: result.ToProblem();
 	}
+
+	[HttpPut("{orderItemId}")]
+	public async Task<IActionResult> Update([FromRoute] int orderId, [FromRoute] int menuItemId, [FromRoute] int orderItemId, [FromBody] AddOrderItemRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new UpdateOrderItemCommand(orderId, menuItemId, orderItemId,request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+	
+	[HttpDelete("{orderItemId}")]
+	public async Task<IActionResult> Delete([FromRoute] int orderId, [FromRoute] int menuItemId, [FromRoute] int orderItemId, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new DeleteOrderItemCommand(orderId, menuItemId, orderItemId), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+
 }
