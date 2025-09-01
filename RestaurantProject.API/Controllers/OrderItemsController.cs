@@ -48,4 +48,11 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 
+	[HttpDelete("~/api/Order/{orderId}/OrderItems")]
+	public async Task<IActionResult> DeleteRange([FromRoute] int orderId, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new DeleteAllOrderItemsCommand(orderId), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+
 }

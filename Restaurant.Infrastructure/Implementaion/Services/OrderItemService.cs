@@ -7,6 +7,7 @@ using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IService;
 using RestaurantProject.Domain.Consts;
 using RestaurantProject.Domain.Entites;
+using System.Runtime.CompilerServices;
 
 namespace RestaurantProject.Infrastructure.Implementaion.Services;
 public class OrderItemService(IOrderItemRepository orderItemRepository,
@@ -141,6 +142,27 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 		return Result.Success();
 	}
 
+	public async Task<Result> DeleteAllAsync(int orderId, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetByIdAsync(orderId, cancellationToken);
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+	
+		if (order.Status != OrderStatus.Pending)
+			return Result.Failure(OrderErrors.OrderCannotBeModified);
+	
+		var orderItems = await _orderItemRepository.GetAsQueryable()
+			.Where(x => x.OrderId == orderId)
+			.ToListAsync(cancellationToken);
+	
+		if (!orderItems.Any())
+			return Result.Failure(OrderItemErrors.NoOrderItemsFound);
+		order.TotalAmount = 0;
+	
+		await _orderItemRepository.DeleteRange(orderItems, cancellationToken);
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
+	}
 
 	private decimal CalculateTotalPrice(double quantity, decimal unitPrice, double? discount)
 	{
