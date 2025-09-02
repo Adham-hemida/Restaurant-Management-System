@@ -31,7 +31,7 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 		var menuItemIsExist = await _menuItemRepository.GetAsQueryable()
 			.AnyAsync(x => x.Id == menuItemId && x.IsActive, cancellationToken);
 
-		if (!orderIsExist)
+		if (!menuItemIsExist)
 			return Result.Failure<OrderItemResponse>(MenuItemErrors.MenuItemNotFound);
 
 

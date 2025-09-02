@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <Folder Include="Features\Authentication\Queries\" />
+    <Folder Include="Features\MenuItemRating\Queries\" />
     <Folder Include="Features\User\Queries\" />
   </ItemGroup>
 
