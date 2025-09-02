@@ -62,4 +62,31 @@ public class MenuItemRatingService(IMenuItemRatingRepository menuItemRatingRepos
 
 		return Result.Success(menuItemRating.Adapt<MenuItemRatingResponse>());
 	}
+
+	public async Task<Result> ToggleStatusAsync(int orderId, int menuItemId, int menuItemRatingId, CancellationToken cancellationToken)
+	{
+		var orderIsExist = await _orderRepository.GetAsQueryable()
+			 .AnyAsync(x => x.Id == orderId && x.IsActive, cancellationToken);
+
+		if (!orderIsExist)
+			return Result.Failure<MenuItemRatingResponse>(OrderErrors.OrderNotFound);
+
+		var menuItemIsExist = await _menuItemRepository.GetAsQueryable()
+			.AnyAsync(x => x.Id == menuItemId && x.IsActive, cancellationToken);
+
+		if (!menuItemIsExist)
+			return Result.Failure<MenuItemRatingResponse>(MenuItemErrors.MenuItemNotFound);
+
+		var menuItemRating = await _menuItemRatingRepository.GetAsQueryable()
+			.Where(x => x.Id == menuItemRatingId && x.OrderId == orderId && x.MenuItemId == menuItemId)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (menuItemRating is null)
+			return Result.Failure(MenuItemRatingErrors.MenuItemRatingNotFound);
+
+		menuItemRating.IsActive = !menuItemRating.IsActive;
+		await _menuItemRatingRepository.UpdateAsync(menuItemRating,cancellationToken);
+		return Result.Success();
+
+	}
 }
