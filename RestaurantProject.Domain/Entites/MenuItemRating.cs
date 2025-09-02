@@ -5,8 +5,9 @@ public class MenuItemRating : AuditableEntity
 
 	public int Rating { get; set; }
 	public string Comment { get; set; } = string.Empty;
+	public bool IsActive { get; set; } = true;
 
-	
+
 	public int MenuItemId { get; set; }
 	public MenuItem MenuItem { get; set; } = default!;
 
