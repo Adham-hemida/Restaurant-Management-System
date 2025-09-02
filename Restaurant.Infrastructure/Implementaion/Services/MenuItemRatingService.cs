@@ -15,6 +15,31 @@ public class MenuItemRatingService(IMenuItemRatingRepository menuItemRatingRepos
 	private readonly IOrderRepository _orderRepository = orderRepository;
 	private readonly IMenuItemRepository _menuItemRepository = menuItemRepository;
 
+	public async Task<Result<MenuItemRatingResponse>> GetAsync(int orderId, int menuItemId, int menuItemRatingId, CancellationToken cancellationToken)
+	{
+		var orderIsExist = await _orderRepository.GetAsQueryable()
+			.AnyAsync(x => x.Id == orderId && x.IsActive, cancellationToken);
+	
+		if (!orderIsExist)
+			return Result.Failure<MenuItemRatingResponse>(OrderErrors.OrderNotFound);
+		
+		var menuItemIsExist = await _menuItemRepository.GetAsQueryable()
+			.AnyAsync(x => x.Id == menuItemId && x.IsActive, cancellationToken);
+		
+		if (!menuItemIsExist)
+			return Result.Failure<MenuItemRatingResponse>(MenuItemErrors.MenuItemNotFound);
+	
+		var menuItemRating = await _menuItemRatingRepository.GetAsQueryable()
+			.Where(x => x.Id == menuItemRatingId && x.OrderId == orderId && x.MenuItemId == menuItemId && x.IsActive)
+			.AsNoTracking()
+			.ProjectToType<MenuItemRatingResponse>()
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (menuItemRating is null)
+			return Result.Failure<MenuItemRatingResponse>(MenuItemRatingErrors.MenuItemRatingNotFound);
+
+		return Result.Success(menuItemRating);
+	}
 	public async Task<Result<MenuItemRatingResponse>> AddAsync(int orderId,int menuItemId, MenuItemRatingRequest request,CancellationToken cancellationToken)
 	{
 		var orderIsExist = await _orderRepository.GetAsQueryable()
