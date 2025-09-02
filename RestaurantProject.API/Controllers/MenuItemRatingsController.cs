@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantProject.Application.Contracts.MenuItemRating;
+using RestaurantProject.Application.Features.MenuCategory.Command.Models;
 using RestaurantProject.Application.Features.MenuItem.Queries.Models;
 using RestaurantProject.Application.Features.MenuItemRating.Commands.Models;
 using RestaurantProject.Application.Features.MenuItemRating.Queries.Models;
@@ -29,4 +30,13 @@ public class MenuItemRatingsController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new AddMenuItemRatingCommand(orderId, menuItemId, request), cancellationToken);
 		return result.IsSuccess ? Ok(result.Value): result.ToProblem();
 	}
+
+	[HttpPut("{menuItemRatingId}/toggleStatus")]
+	public async Task<IActionResult> ToggleStatus([FromRoute] int orderId, [FromRoute] int menuItemId, [FromRoute] int menuItemRatingId, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new MenuItemRatingToggleStatusCommand(orderId, menuItemId, menuItemRatingId), cancellationToken);
+
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+
 }
