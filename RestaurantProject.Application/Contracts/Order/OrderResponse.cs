@@ -5,6 +5,7 @@ public record OrderResponse(
 	string Status,
 	decimal TotalAmount,
 	bool IsDelivered,
+	bool IsActive,
 	int TableNumber,
 	IEnumerable<OrderItemMinimalResponse> OrderItems
 	);

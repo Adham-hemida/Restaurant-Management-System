@@ -1,6 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RestaurantProject.Application.Contracts.Common;
+using RestaurantProject.Application.Features.MenuItem.Queries.Models;
 using RestaurantProject.Application.Features.Order.Queries.Models;
 using RestaurantProject.Application.Features.OrderItem.Queries.Models;
 
@@ -18,5 +20,11 @@ public class OrdersController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
 
+	[HttpGet("")]
+	public async Task<IActionResult> GetAll( [FromQuery] RequestFilters filters, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetAllOrdersQuery( filters), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
 
 }
