@@ -1,9 +1,12 @@
-﻿using Mapster;
+﻿using Azure.Core;
+using Mapster;
 using RestaurantProject.Application.Abstractions;
+using RestaurantProject.Application.Contracts.Common;
 using RestaurantProject.Application.Contracts.MenuItemRating;
 using RestaurantProject.Application.Contracts.OrderItem;
 using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IService;
+using System.Linq.Dynamic.Core;
 
 namespace RestaurantProject.Infrastructure.Implementaion.Services;
 public class MenuItemRatingService(IMenuItemRatingRepository menuItemRatingRepository,
@@ -39,6 +42,35 @@ public class MenuItemRatingService(IMenuItemRatingRepository menuItemRatingRepos
 			return Result.Failure<MenuItemRatingResponse>(MenuItemRatingErrors.MenuItemRatingNotFound);
 
 		return Result.Success(menuItemRating);
+	}
+
+	public async Task<Result<PaginatedList<MenuItemRatingResponse>>>GetAllAsync(int menuItemId, RequestFilters filters, CancellationToken cancellationToken)
+	{
+		var menuItemIsExist = await _menuItemRepository.GetAsQueryable()
+			.AnyAsync(x => x.Id == menuItemId && x.IsActive, cancellationToken);
+
+		if (!menuItemIsExist)
+			return Result.Failure<PaginatedList<MenuItemRatingResponse>>(MenuItemErrors.MenuItemNotFound);
+
+		var query = _menuItemRatingRepository.GetAsQueryable()
+			.Where(x=>x.MenuItemId==menuItemId );
+
+		if (!string.IsNullOrEmpty(filters.SearchValue))
+		{
+			query = query.Where(x => x.Rating.ToString().Contains(filters.SearchValue));
+		}
+		if (!string.IsNullOrEmpty(filters.SortColumn))
+		{
+			query = query.OrderBy($"{filters.SortColumn} {filters.SortDirection}");
+		}
+
+		var source = query.AsNoTracking()
+			.ProjectToType<MenuItemRatingResponse>();
+
+		var menuItemsRating = await PaginatedList<MenuItemRatingResponse>.CreateAsync(source, filters.PageNumber, filters.PageSize, cancellationToken);
+
+		return Result.Success(menuItemsRating);
+
 	}
 	public async Task<Result<MenuItemRatingResponse>> AddAsync(int orderId,int menuItemId, MenuItemRatingRequest request,CancellationToken cancellationToken)
 	{

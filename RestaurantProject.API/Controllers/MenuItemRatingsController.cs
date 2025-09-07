@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RestaurantProject.Application.Contracts.Common;
 using RestaurantProject.Application.Contracts.MenuItemRating;
 using RestaurantProject.Application.Features.MenuCategory.Command.Models;
 using RestaurantProject.Application.Features.MenuItem.Queries.Models;
 using RestaurantProject.Application.Features.MenuItemRating.Commands.Models;
 using RestaurantProject.Application.Features.MenuItemRating.Queries.Models;
+using RestaurantProject.Application.Features.OrderItem.Queries.Models;
 using RestaurantProject.Domain.Entites;
 
 namespace RestaurantProject.API.Controllers;
@@ -24,6 +26,12 @@ public class MenuItemRatingsController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
 
+	[HttpGet("~/api/MenuItem/{menuItemId}/MenuItemRatings")]
+	public async Task<IActionResult> GetAll([FromRoute] int menuItemId, [FromQuery] RequestFilters filters, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetAllMenuItemsRatingQuery(menuItemId,filters), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
 
 	[HttpPost("")]
 	public async Task<IActionResult> Create([FromRoute] int orderId, [FromRoute] int menuItemId, [FromBody] MenuItemRatingRequest request, CancellationToken cancellationToken)
