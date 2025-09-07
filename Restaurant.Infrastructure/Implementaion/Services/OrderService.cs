@@ -1,0 +1,39 @@
+﻿using RestaurantProject.Application.Abstractions;
+using RestaurantProject.Application.Contracts.Order;
+using RestaurantProject.Application.Contracts.OrderItem;
+using RestaurantProject.Application.ErrorHandler;
+using RestaurantProject.Application.Interfaces.IService;
+
+namespace RestaurantProject.Infrastructure.Implementaion.Services;
+public class OrderService(IOrderRepository orderRepository) : IOrderService
+{
+	private readonly IOrderRepository _orderRepository = orderRepository;
+
+	public async Task<Result<OrderResponse>> GetAsync (int orderId, CancellationToken cancellationToken)
+	{
+		var order=await _orderRepository.GetAsQueryable()
+			.Where(x => x.Id == orderId)
+			.Include(x => x.OrderItems.Where(oi => oi.IsActive))
+			.Include(x=>x.Table)
+			.Select(o=> new OrderResponse(
+				o.Id,
+				o.Name,
+				o.Status.ToString(),
+				o.TotalAmount,
+				o.IsDelivered,
+				o.Table.TableNumber,
+				o.OrderItems.Select(oi => new OrderItemMinimalResponse(
+					oi.Id,
+					oi.Quantity,
+					oi.Notes,
+					oi.UnitPrice
+					)).ToList()
+				))
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (order is null)
+			return Result.Failure<OrderResponse>(OrderErrors.OrderNotFound);
+
+		return Result.Success(order);
+	}
+}
