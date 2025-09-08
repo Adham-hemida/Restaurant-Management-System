@@ -62,4 +62,11 @@ public class OrdersController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new ToggleIsActiveCommand(id), cancellationToken);
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
+
+	[HttpPut("{id}/move-to-table/{newTableId}")]
+	public async Task<IActionResult> MoveOrderToTable([FromRoute] int id,[FromRoute]int newTableId, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new MoveOrderToTableCommand(id, newTableId), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 }

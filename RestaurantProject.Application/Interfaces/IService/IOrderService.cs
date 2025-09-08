@@ -9,5 +9,5 @@ public interface IOrderService
 	Task<Result> ToggleDeliveredAsync(int orderId, CancellationToken cancellationToken);
 	Task<Result> UpdateStatusAsync(int id, UpdateOrderStatusRequest request, CancellationToken cancellationToken);
 	Task<Result> ToggleIsActiveAsync(int orderId, CancellationToken cancellationToken);
-
+	Task<Result> MoveOrderToTableAsync(int orderId, int newTableId, CancellationToken cancellationToken);
 }

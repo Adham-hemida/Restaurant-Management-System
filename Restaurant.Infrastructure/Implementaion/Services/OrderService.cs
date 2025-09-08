@@ -196,4 +196,34 @@ public class OrderService(IOrderRepository orderRepository,
 		return Result.Success();
 
 	}
+	public async Task<Result> MoveOrderToTableAsync(int orderId,int newTableId, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetAsQueryable()
+			.Where(x => x.Id == orderId)
+			.Include(x => x.Table)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+
+		order.Table.Status=TableStatus.Available;
+		await _tableRepository.UpdateAsync(order.Table, cancellationToken);
+
+		var newTable= await _tableRepository.GetAsQueryable()
+			.Where(x => x.Id == newTableId)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if(newTable is null)
+			return Result.Failure(TableErrors.TableNotFound);
+
+		if (newTable.Status != TableStatus.Available)
+			return Result.Failure(TableErrors.TableNotAvailable);
+
+		order.TableId = newTableId;
+		newTable.Status = TableStatus.Occupied;
+
+		await _tableRepository.UpdateAsync(newTable, cancellationToken);
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
+	}
 }
