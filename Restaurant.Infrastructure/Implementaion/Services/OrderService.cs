@@ -100,6 +100,9 @@ public class OrderService(IOrderRepository orderRepository,
 		if (table.Status != TableStatus.Available)
 			return Result.Failure<OrderResponse>(TableErrors.TableNotAvailable);
 
+		table.Status = TableStatus.Occupied;
+		await _tableRepository.UpdateAsync(table, cancellationToken);
+
 		var order = new Order
 		{
 			Name = request.Name,
