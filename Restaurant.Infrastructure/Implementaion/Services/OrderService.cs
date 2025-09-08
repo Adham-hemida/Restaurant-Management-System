@@ -1,4 +1,5 @@
-﻿using RestaurantProject.Application.Abstractions;
+﻿using Mapster;
+using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.Common;
 using RestaurantProject.Application.Contracts.Order;
 using RestaurantProject.Application.Contracts.OrderItem;
@@ -138,5 +139,23 @@ public class OrderService(IOrderRepository orderRepository,
 		await _orderRepository.AddAsync(order, cancellationToken);
 		var response = new OrderResponse(order.Id, order.Name, order.Status, order.TotalAmount, order.IsDelivered, order.IsActive, table.TableNumber, order.OrderItems.Select(oi => new OrderItemMinimalResponse(oi.Id, oi.Quantity, oi.Notes, oi.UnitPrice)).ToList());
 		return Result.Success(response);
+	}
+
+	public async Task<Result> ToggleDeliveredAsync(int orderId, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetAsQueryable()
+			.Where(x => x.Id == orderId && x.IsActive )
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+
+		if (order.Status != OrderStatus.Completed)
+			return Result.Failure(OrderErrors.OrderNotCompleted);
+
+		order.IsDelivered=!order.IsDelivered;
+
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
 	}
 }
