@@ -100,6 +100,9 @@ public class OrderService(IOrderRepository orderRepository,
 		if (table.Status != TableStatus.Available)
 			return Result.Failure<OrderResponse>(TableErrors.TableNotAvailable);
 
+		table.Status = TableStatus.Occupied;
+		await _tableRepository.UpdateAsync(table, cancellationToken);
+
 		var order = new Order
 		{
 			Name = request.Name,
@@ -225,5 +228,41 @@ public class OrderService(IOrderRepository orderRepository,
 		await _tableRepository.UpdateAsync(newTable, cancellationToken);
 		await _orderRepository.UpdateAsync(order, cancellationToken);
 		return Result.Success();
+	}
+
+	public async Task<Result<IEnumerable<OrderResponse>>> GetByTableAsync(int tableId, CancellationToken cancellationToken)
+	{
+		var table =await _tableRepository.GetAsQueryable()
+			.Where(x => x.Id == tableId)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (table is null)
+			return Result.Failure<IEnumerable<OrderResponse>>(TableErrors.TableNotFound);
+
+		var orders =await _orderRepository.GetAsQueryable()
+			.Where(x => x.TableId == tableId && x.IsActive)
+			.Include(x => x.OrderItems.Where(oi => oi.IsActive))
+			.Include(x => x.Table)
+			.AsNoTracking()
+			.Select(o => new OrderResponse(
+				o.Id,
+				o.Name,
+				o.Status,
+				o.TotalAmount,
+				o.IsDelivered,
+				o.IsActive,
+				o.Table.TableNumber,
+				o.OrderItems.Select(oi => new OrderItemMinimalResponse(
+					oi.Id,
+					oi.Quantity,
+					oi.Notes,
+					oi.UnitPrice
+					)).ToList()
+				)).ToListAsync(cancellationToken);
+
+		if (!orders.Any())
+			return Result.Failure<IEnumerable<OrderResponse>>(OrderErrors.NoOrdersFoundForTable);
+
+		return Result.Success<IEnumerable<OrderResponse>>(orders);
 	}
 }

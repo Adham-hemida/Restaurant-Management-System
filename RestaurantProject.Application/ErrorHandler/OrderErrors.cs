@@ -15,4 +15,7 @@ public static class OrderErrors
 	public static readonly Error InvalidOrderStatus =
 	new("OrderStatus.not_Valid", " OrderStatus is not correct ", statusCode: StatusCodes.Status400BadRequest);
 
+	public static readonly Error NoOrdersFoundForTable =
+	new("Order.not_found", " No Orders Found For This Table ", statusCode: StatusCodes.Status400BadRequest);
+
 }
