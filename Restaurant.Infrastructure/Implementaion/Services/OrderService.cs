@@ -23,13 +23,13 @@ public class OrderService(IOrderRepository orderRepository,
 	private readonly IMenuItemRepository _menuItemRepository = menuItemRepository;
 	private readonly IOrderItemRepository _orderItemRepository = orderItemRepository;
 
-	public async Task<Result<OrderResponse>> GetAsync (int orderId, CancellationToken cancellationToken)
+	public async Task<Result<OrderResponse>> GetAsync(int orderId, CancellationToken cancellationToken)
 	{
-		var order=await _orderRepository.GetAsQueryable()
+		var order = await _orderRepository.GetAsQueryable()
 			.Where(x => x.Id == orderId)
 			.Include(x => x.OrderItems.Where(oi => oi.IsActive))
-			.Include(x=>x.Table)
-			.Select(o=> new OrderResponse(
+			.Include(x => x.Table)
+			.Select(o => new OrderResponse(
 				o.Id,
 				o.Name,
 				o.Status,
@@ -55,10 +55,10 @@ public class OrderService(IOrderRepository orderRepository,
 	public async Task<Result<PaginatedList<OrderResponse>>> GetAllAsync(RequestFilters filters, CancellationToken cancellationToken)
 	{
 		var query = _orderRepository.GetAsQueryable();
-			
+
 		if (!string.IsNullOrEmpty(filters.SearchValue))
 		{
-			query = query.Where(x => x.Status.Contains(filters.SearchValue)|| x.Name.Contains(filters.SearchValue));
+			query = query.Where(x => x.Status.Contains(filters.SearchValue) || x.Name.Contains(filters.SearchValue));
 		}
 
 		if (!string.IsNullOrEmpty(filters.SortColumn))
@@ -66,7 +66,7 @@ public class OrderService(IOrderRepository orderRepository,
 			query = query.OrderBy($"{filters.SortColumn} {filters.SortDirection}");
 		}
 
-		var source =  query
+		var source = query
 			.Include(x => x.OrderItems.Where(oi => oi.IsActive))
 			.Include(x => x.Table)
 			.AsNoTracking()
@@ -85,8 +85,8 @@ public class OrderService(IOrderRepository orderRepository,
 					oi.UnitPrice
 					)).ToList()
 				));
-			
-		var orders=await PaginatedList<OrderResponse>.CreateAsync(source, filters.PageNumber, filters.PageSize, cancellationToken);
+
+		var orders = await PaginatedList<OrderResponse>.CreateAsync(source, filters.PageNumber, filters.PageSize, cancellationToken);
 		return Result.Success(orders);
 	}
 
@@ -97,7 +97,7 @@ public class OrderService(IOrderRepository orderRepository,
 		if (table is null)
 			return Result.Failure<OrderResponse>(TableErrors.TableNotFound);
 
-		if(table.Status != TableStatus.Available)
+		if (table.Status != TableStatus.Available)
 			return Result.Failure<OrderResponse>(TableErrors.TableNotAvailable);
 
 		var order = new Order
@@ -145,7 +145,7 @@ public class OrderService(IOrderRepository orderRepository,
 	public async Task<Result> ToggleDeliveredAsync(int orderId, CancellationToken cancellationToken)
 	{
 		var order = await _orderRepository.GetAsQueryable()
-			.Where(x => x.Id == orderId && x.IsActive )
+			.Where(x => x.Id == orderId && x.IsActive)
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (order is null)
@@ -154,7 +154,7 @@ public class OrderService(IOrderRepository orderRepository,
 		if (order.Status != OrderStatus.Completed)
 			return Result.Failure(OrderErrors.OrderNotCompleted);
 
-		order.IsDelivered=!order.IsDelivered;
+		order.IsDelivered = !order.IsDelivered;
 
 		await _orderRepository.UpdateAsync(order, cancellationToken);
 		return Result.Success();
@@ -163,7 +163,7 @@ public class OrderService(IOrderRepository orderRepository,
 	public async Task<Result> UpdateStatusAsync(int id, UpdateOrderStatusRequest request, CancellationToken cancellationToken)
 	{
 		var order = await _orderRepository.GetAsQueryable()
-			.Where(x=>x.Id == id && x.IsActive)
+			.Where(x => x.Id == id && x.IsActive)
 			.SingleOrDefaultAsync(cancellationToken);
 
 		if (order is null)
@@ -180,5 +180,20 @@ public class OrderService(IOrderRepository orderRepository,
 		order.Status = request.Status;
 		await _orderRepository.UpdateAsync(order, cancellationToken);
 		return Result.Success();
+	}
+
+	public async Task<Result> ToggleIsActiveAsync(int id, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetAsQueryable()
+			.Where(x => x.Id == id)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+
+		order.IsActive = !order.IsActive;
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
+
 	}
 }

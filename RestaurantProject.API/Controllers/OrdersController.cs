@@ -49,10 +49,17 @@ public class OrdersController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 	
-	[HttpPut("{id}/toggle-Satus")]
+	[HttpPut("{id}/toggle-satus")]
 	public async Task<IActionResult> ToggleSatus([FromRoute] int id, [FromBody] UpdateOrderStatusRequest request, CancellationToken cancellationToken)
 	{
 		var result = await _mediator.Send(new UpdateStatusOfOrderCommand(id, request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+	
+	[HttpPut("{id}/toggle-active")]
+	public async Task<IActionResult> ToggleActive([FromRoute] int id, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new ToggleIsActiveCommand(id), cancellationToken);
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 }
