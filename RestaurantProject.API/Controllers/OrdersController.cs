@@ -48,4 +48,11 @@ public class OrdersController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new ToggleDeliveredCommand(id), cancellationToken);
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
+	
+	[HttpPut("{id}/toggle-Satus")]
+	public async Task<IActionResult> ToggleSatus([FromRoute] int id, [FromBody] UpdateOrderStatusRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new UpdateStatusOfOrderCommand(id, request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 }

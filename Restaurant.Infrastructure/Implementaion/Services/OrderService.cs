@@ -7,6 +7,7 @@ using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IService;
 using RestaurantProject.Domain.Consts;
 using RestaurantProject.Domain.Entites;
+using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Security.Cryptography.Xml;
 
@@ -155,6 +156,28 @@ public class OrderService(IOrderRepository orderRepository,
 
 		order.IsDelivered=!order.IsDelivered;
 
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
+	}
+
+	public async Task<Result> UpdateStatusAsync(int id, UpdateOrderStatusRequest request, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetAsQueryable()
+			.Where(x=>x.Id == id && x.IsActive)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+
+		var ordersStatus = OrderStatus.GetAllOrdersStatus();
+
+		if (!ordersStatus.Contains(request.Status))
+			return Result.Failure(OrderErrors.InvalidOrderStatus);
+
+		if (request.Status == OrderStatus.Cancelled)
+			order.IsActive = false;
+
+		order.Status = request.Status;
 		await _orderRepository.UpdateAsync(order, cancellationToken);
 		return Result.Success();
 	}
