@@ -1,4 +1,5 @@
-﻿using RestaurantProject.Application.Abstractions;
+﻿using Mapster;
+using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.Common;
 using RestaurantProject.Application.Contracts.Order;
 using RestaurantProject.Application.Contracts.OrderItem;
@@ -6,6 +7,7 @@ using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IService;
 using RestaurantProject.Domain.Consts;
 using RestaurantProject.Domain.Entites;
+using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Security.Cryptography.Xml;
 
@@ -138,5 +140,45 @@ public class OrderService(IOrderRepository orderRepository,
 		await _orderRepository.AddAsync(order, cancellationToken);
 		var response = new OrderResponse(order.Id, order.Name, order.Status, order.TotalAmount, order.IsDelivered, order.IsActive, table.TableNumber, order.OrderItems.Select(oi => new OrderItemMinimalResponse(oi.Id, oi.Quantity, oi.Notes, oi.UnitPrice)).ToList());
 		return Result.Success(response);
+	}
+
+	public async Task<Result> ToggleDeliveredAsync(int orderId, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetAsQueryable()
+			.Where(x => x.Id == orderId && x.IsActive )
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+
+		if (order.Status != OrderStatus.Completed)
+			return Result.Failure(OrderErrors.OrderNotCompleted);
+
+		order.IsDelivered=!order.IsDelivered;
+
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
+	}
+
+	public async Task<Result> UpdateStatusAsync(int id, UpdateOrderStatusRequest request, CancellationToken cancellationToken)
+	{
+		var order = await _orderRepository.GetAsQueryable()
+			.Where(x=>x.Id == id && x.IsActive)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (order is null)
+			return Result.Failure(OrderErrors.OrderNotFound);
+
+		var ordersStatus = OrderStatus.GetAllOrdersStatus();
+
+		if (!ordersStatus.Contains(request.Status))
+			return Result.Failure(OrderErrors.InvalidOrderStatus);
+
+		if (request.Status == OrderStatus.Cancelled)
+			order.IsActive = false;
+
+		order.Status = request.Status;
+		await _orderRepository.UpdateAsync(order, cancellationToken);
+		return Result.Success();
 	}
 }

@@ -8,6 +8,11 @@ public static class OrderErrors
 	
 	public static readonly Error OrderCannotBeModified =
 		new("Order.CannotBeModified", "Order can not modified", statusCode: StatusCodes.Status400BadRequest);
+	
+	public static readonly Error OrderNotCompleted =
+		new("Order.NotCompleted", "Order Not Completed yet", statusCode: StatusCodes.Status400BadRequest);
 
+	public static readonly Error InvalidOrderStatus =
+	new("OrderStatus.not_Valid", " OrderStatus is not correct ", statusCode: StatusCodes.Status400BadRequest);
 
 }

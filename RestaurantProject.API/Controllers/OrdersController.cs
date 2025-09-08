@@ -9,6 +9,7 @@ using RestaurantProject.Application.Features.Order.Commands.Models;
 using RestaurantProject.Application.Features.Order.Queries.Models;
 using RestaurantProject.Application.Features.OrderItem.Commands.Models;
 using RestaurantProject.Application.Features.OrderItem.Queries.Models;
+using RestaurantProject.Application.Features.Table.Commands.Models;
 
 namespace RestaurantProject.API.Controllers;
 [Route("api/[controller]")]
@@ -41,5 +42,17 @@ public class OrdersController(IMediator mediator) : ControllerBase
 			: result.ToProblem();
 	}
 
-
+	[HttpPut("{id}/toggle-delivered")]
+	public async Task<IActionResult> ToggleDelivered([FromRoute] int id, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new ToggleDeliveredCommand(id), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+	
+	[HttpPut("{id}/toggle-Satus")]
+	public async Task<IActionResult> ToggleSatus([FromRoute] int id, [FromBody] UpdateOrderStatusRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new UpdateStatusOfOrderCommand(id, request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 }
