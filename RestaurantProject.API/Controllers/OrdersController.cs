@@ -32,6 +32,13 @@ public class OrdersController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
 
+	[HttpGet("table/{tableId}")]
+	public async Task<IActionResult> GetByTable([FromRoute] int tableId, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetByTableCommand(tableId), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
+
 	[HttpPost("")]
 	public async Task<IActionResult> Create( [FromBody] OrderRequest request, CancellationToken cancellationToken)
 	{
@@ -69,4 +76,6 @@ public class OrdersController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new MoveOrderToTableCommand(id, newTableId), cancellationToken);
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
+
+
 }
