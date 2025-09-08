@@ -69,7 +69,9 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 
 	public async Task<Result<OrderItemResponse>> AddAsync(int orderId, int menuItemId, AddOrderItemRequest request, CancellationToken cancellationToken)
 	{
-	   var order=await _orderRepository.GetByIdAsync(orderId, cancellationToken);
+	   var order=await _orderRepository.GetAsQueryable()
+			.Where(x => x.Id == orderId && x.IsActive)
+			.SingleOrDefaultAsync(cancellationToken);
 
 		if (order is null)
 			return Result.Failure<OrderItemResponse>(OrderErrors.OrderNotFound);
@@ -77,7 +79,9 @@ public class OrderItemService(IOrderItemRepository orderItemRepository,
 		if(order.Status!=OrderStatus.Pending)
 			return Result.Failure<OrderItemResponse>(OrderErrors.OrderCannotBeModified);
 
-		var menuItem = await _menuItemRepository.GetByIdAsync(menuItemId, cancellationToken);
+		var menuItem = await _menuItemRepository.GetAsQueryable()
+			.Where(x => x.Id == menuItemId && x.IsActive)
+			.SingleOrDefaultAsync(cancellationToken);
 
 		if (menuItem is null)
 			return Result.Failure<OrderItemResponse>(MenuItemErrors.MenuItemNotFound);

@@ -11,4 +11,7 @@ public static class TableErrors
 	
 	public static readonly Error DuplicatedTable =
 		new("Table.Duplicated", " Another Table is already exist", StatusCodes.Status409Conflict);
+	
+	public static readonly Error TableNotAvailable =
+		new("Table.NotAvailable", "  Table is Not Available", StatusCodes.Status400BadRequest);
 }

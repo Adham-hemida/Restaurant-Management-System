@@ -53,7 +53,7 @@ public class MenuItemRatingService(IMenuItemRatingRepository menuItemRatingRepos
 			return Result.Failure<PaginatedList<MenuItemRatingResponse>>(MenuItemErrors.MenuItemNotFound);
 
 		var query = _menuItemRatingRepository.GetAsQueryable()
-			.Where(x=>x.MenuItemId==menuItemId );
+			.Where(x=>x.MenuItemId==menuItemId && x.IsActive );
 
 		if (!string.IsNullOrEmpty(filters.SearchValue))
 		{
