@@ -2,8 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantProject.Application.Contracts.Common;
+using RestaurantProject.Application.Contracts.Order;
+using RestaurantProject.Application.Contracts.OrderItem;
 using RestaurantProject.Application.Features.MenuItem.Queries.Models;
+using RestaurantProject.Application.Features.Order.Commands.Models;
 using RestaurantProject.Application.Features.Order.Queries.Models;
+using RestaurantProject.Application.Features.OrderItem.Commands.Models;
 using RestaurantProject.Application.Features.OrderItem.Queries.Models;
 
 namespace RestaurantProject.API.Controllers;
@@ -26,5 +30,16 @@ public class OrdersController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new GetAllOrdersQuery( filters), cancellationToken);
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
+
+	[HttpPost("")]
+	public async Task<IActionResult> Create( [FromBody] OrderRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new AddOrderCommand(request), cancellationToken);
+
+		return result.IsSuccess
+			? CreatedAtAction(nameof(GetById), new {  result.Value.Id }, result.Value)
+			: result.ToProblem();
+	}
+
 
 }

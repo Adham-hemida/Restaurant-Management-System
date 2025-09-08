@@ -21,6 +21,12 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
 		await _context.Set<T>().AddAsync(entity);
 		await _context.SaveChangesAsync(cancellationToken);
 	}
+	public async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
+	{
+		await _context.Set<T>().AddRangeAsync(entities, cancellationToken);
+		await _context.SaveChangesAsync(cancellationToken);
+	}
+
 
 	public async Task DeleteAsync(T entity, CancellationToken cancellationToken = default)
 	{

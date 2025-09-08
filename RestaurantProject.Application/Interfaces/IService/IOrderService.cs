@@ -5,4 +5,6 @@ public interface IOrderService
 {
 	Task<Result<OrderResponse>> GetAsync(int orderId, CancellationToken cancellationToken);
 	Task<Result<PaginatedList<OrderResponse>>> GetAllAsync(RequestFilters filters, CancellationToken cancellationToken);
+	Task<Result<OrderResponse>> AddAsync(OrderRequest request, CancellationToken cancellationToken);
+
 }
