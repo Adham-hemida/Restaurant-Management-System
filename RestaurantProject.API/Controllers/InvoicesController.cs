@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantProject.Application.Contracts.Invoice;
+using RestaurantProject.Application.Contracts.Order;
 using RestaurantProject.Application.Contracts.OrderItem;
 using RestaurantProject.Application.Features.Invoice.Commands.Models;
 using RestaurantProject.Application.Features.Invoice.Queries.Models;
 using RestaurantProject.Application.Features.MenuItem.Queries.Models;
+using RestaurantProject.Application.Features.Order.Commands.Models;
 using RestaurantProject.Application.Features.OrderItem.Commands.Models;
 
 namespace RestaurantProject.API.Controllers;
@@ -33,6 +35,13 @@ public class InvoicesController(IMediator mediator) : ControllerBase
 		return result.IsSuccess 
 			?CreatedAtAction(nameof(GetById),new { result.Value.Id},result.Value)	
 			: result.ToProblem();
+	}
+
+	[HttpPut("{id}/update-pay-method")]
+	public async Task<IActionResult> UpdatePayMenthod([FromRoute] int orderId, [FromRoute] int id, [FromBody] UpdateInvoicePaymentMethodRequest  request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new UpdatePayMenthodCommand(orderId,id, request), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 
 }

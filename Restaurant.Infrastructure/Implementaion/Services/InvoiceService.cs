@@ -95,4 +95,28 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 		return Result.Success(response);
 
 	}
+
+	public async Task<Result> UpdatePayMenthodAsync(int orderId, int id, UpdateInvoicePaymentMethodRequest request, CancellationToken cancellationToken = default)
+	{
+		var orderIsExist = await _orderRepository.GetAsQueryable()
+			.AnyAsync(x => x.Id == orderId && x.IsActive, cancellationToken);
+
+		if (!orderIsExist)
+			return Result.Failure(OrderErrors.OrderNotFound);
+
+		var invoice = await _invoiceRepository.GetAsQueryable()
+			.Where(i => i.OrderId == orderId && i.Id == id)
+			.SingleOrDefaultAsync(cancellationToken);
+
+		if (invoice is null)
+			return Result.Failure(InvoiceErrors.InvoiceNotFound);
+
+		invoice.PaymentMethod = request.PaymentMethod;
+		invoice.PaidAt = DateTime.UtcNow;
+		invoice.IsPaid = true;
+
+		await _invoiceRepository.UpdateAsync(invoice, cancellationToken);
+		return Result.Success();
+	}
+
 }
