@@ -13,6 +13,46 @@ public class InvoiceService(IInvoiceRepository invoiceRepository,
 	private readonly IInvoiceRepository _invoiceRepository = invoiceRepository;
 	private readonly IOrderRepository _orderRepository = orderRepository;
 
+	public async Task<Result<InvoiceResponse>> GetAsync(int orderId, int id, CancellationToken cancellationToken = default)
+	{
+		var orderIsExist = await _orderRepository.GetAsQueryable()
+			.AnyAsync(x => x.Id == orderId && x.IsActive, cancellationToken);
+
+		if (!orderIsExist)
+			return Result.Failure<InvoiceResponse>(OrderErrors.OrderNotFound);
+
+		var invoice = await _invoiceRepository.GetAsQueryable()
+					.Where(i => i.OrderId == orderId && i.Id==id)
+					.Include(i => i.Order)
+				      .ThenInclude(o => o.OrderItems)
+		             	.ThenInclude(oi => oi.MenuItem)
+					.Select(i => new InvoiceResponse(
+						i.Id,
+						i.TotalAmount,
+						i.PaymentMethod,
+						i.Tax,
+						i.ServiceCharge,
+						i.FinalAmount,
+						new InvoiceOfOrderResponse(
+							i.Order.Id,
+							i.Order.Name,
+							i.Order.OrderItems.Select(oi => new InvoiceOfOrderItemsResponse(
+								oi.MenuItem.Name,
+								oi.Quantity,
+								oi.TotalPrice
+								)).ToList()
+							)
+						))
+					.SingleOrDefaultAsync(cancellationToken);
+
+		if (invoice is null)
+			return Result.Failure<InvoiceResponse>(InvoiceErrors.InvoiceNotFound);
+
+		return Result.Success(invoice);
+	}
+
+
+
 	public async Task<Result<InvoiceResponse>>AddAsync(int orderId,InvoiceRequest request,CancellationToken cancellationToken=default)
 	{
 		var order=await _orderRepository.GetAsQueryable()
