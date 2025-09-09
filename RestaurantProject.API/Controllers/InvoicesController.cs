@@ -30,7 +30,9 @@ public class InvoicesController(IMediator mediator) : ControllerBase
 	{
 		var result = await _mediator.Send(new AddInvoiceCommand(orderId, request), cancellationToken);
 
-		return result.IsSuccess ?Ok(result.Value)	: result.ToProblem();
+		return result.IsSuccess 
+			?CreatedAtAction(nameof(GetById),new { result.Value.Id},result.Value)	
+			: result.ToProblem();
 	}
 
 }
