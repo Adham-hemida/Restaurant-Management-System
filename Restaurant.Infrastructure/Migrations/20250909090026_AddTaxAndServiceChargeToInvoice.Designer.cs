@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RestaurantProject.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using RestaurantProject.Infrastructure.Data;
 namespace RestaurantProject.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250909090026_AddTaxAndServiceChargeToInvoice")]
+    partial class AddTaxAndServiceChargeToInvoice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -290,9 +293,6 @@ namespace RestaurantProject.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Tax")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TaxPercentage")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalAmount")

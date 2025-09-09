@@ -18,4 +18,7 @@ public static class OrderErrors
 	public static readonly Error NoOrdersFoundForTable =
 	new("Order.not_found", " No Orders Found For This Table ", statusCode: StatusCodes.Status400BadRequest);
 
+	public static readonly Error OrderCancelled =
+	new("Order.Cancelled ", "Order has been cancelled", statusCode: StatusCodes.Status400BadRequest);
+
 }
