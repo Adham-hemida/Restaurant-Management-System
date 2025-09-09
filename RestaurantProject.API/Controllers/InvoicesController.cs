@@ -43,5 +43,12 @@ public class InvoicesController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new UpdatePayMenthodCommand(orderId,id, request), cancellationToken);
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
+	
+	[HttpPut("{id}/toggle-status")]
+	public async Task<IActionResult> ToggleStatus([FromRoute] int orderId, [FromRoute] int id, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new InvoiceToggleStatusCommand(orderId,id), cancellationToken);
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 
 }
