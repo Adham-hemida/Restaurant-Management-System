@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace RestaurantProject.Infrastructure.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IHttpContextAccessor httpContextAccessor) 
-	: IdentityDbContext<ApplicationUser>(options)
+	: IdentityDbContext<ApplicationUser , ApplicationRole,string>(options)
 {
 	private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 

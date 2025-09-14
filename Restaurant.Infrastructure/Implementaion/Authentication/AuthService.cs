@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.Authentication;
+using RestaurantProject.Application.Contracts.Invoice;
 using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IAuthentication;
 using RestaurantProject.Infrastructure.Helpers;
@@ -18,7 +19,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 	IJwtProvider jwtProvider,
 	ILogger<AuthService> logger,
 	IHttpContextAccessor httpContextAccessor,
-    IEmailSender emailSender) : IAuthService
+    IEmailSender emailSender,
+	IRoleClaimRepository roleClaimRepository) : IAuthService
 {
 	private readonly UserManager<ApplicationUser> _userManager = userManager;
 	private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -27,6 +29,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 	private readonly int _refreshTokenExpirationDays = 14;
 	private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 	private readonly IEmailSender _emailSender = emailSender;
+	private readonly IRoleClaimRepository _roleClaimRepository = roleClaimRepository;
 
 	public async Task<Result<AuthResponse>> GetTokenAsync(LoginRequest loginRequest, CancellationToken cancellationToken = default)
 	{
@@ -39,7 +42,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 		var result = await _signInManager.PasswordSignInAsync(user, loginRequest.Password, isPersistent: false, lockoutOnFailure: true);
 		if (result.Succeeded)
 		{
-			var (token, expiresIn) = _jwtProvider.GenerateJwtToken(user);
+			var (roles,permissions)=await _roleClaimRepository.GetUserRolesPermissions(user,cancellationToken);
+			var (token, expiresIn) = _jwtProvider.GenerateJwtToken(user, roles,permissions);
 
 			var refreshToken = GenerateRefreshToken();
 			var refreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenExpirationDays);
@@ -86,8 +90,9 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 
 		userRefreshToken.RevokedOn = DateTime.UtcNow;
 
+		var (roles, permissions) = await _roleClaimRepository.GetUserRolesPermissions(user, cancellationToken);
 
-		var (newToken, expiresIn) = _jwtProvider.GenerateJwtToken(user);
+		var (newToken, expiresIn) = _jwtProvider.GenerateJwtToken(user, roles, permissions);
 
 		var newRefreshToken = GenerateRefreshToken();
 		var newRefreshTokenExpiration = DateTime.UtcNow.AddDays(_refreshTokenExpirationDays);
