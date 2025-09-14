@@ -1,19 +1,32 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using RestaurantProject.Application.Abstractions;
 using RestaurantProject.Application.Contracts.Authentication;
 using RestaurantProject.Application.ErrorHandler;
 using RestaurantProject.Application.Interfaces.IAuthentication;
+using RestaurantProject.Infrastructure.Helpers;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace RestaurantProject.Infrastructure.Implementaion.Authentication;
 public class AuthService(UserManager<ApplicationUser> userManager,
 	SignInManager<ApplicationUser> signInManager,
-	IJwtProvider jwtProvider) : IAuthService
+	IJwtProvider jwtProvider,
+	ILogger<AuthService> logger,
+	IHttpContextAccessor httpContextAccessor,
+    IEmailSender emailSender) : IAuthService
 {
 	private readonly UserManager<ApplicationUser> _userManager = userManager;
 	private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
 	private readonly IJwtProvider _jwtProvider = jwtProvider;
+	private readonly ILogger<AuthService> _logger = logger;
 	private readonly int _refreshTokenExpirationDays = 14;
+	private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+	private readonly IEmailSender _emailSender = emailSender;
 
 	public async Task<Result<AuthResponse>> GetTokenAsync(LoginRequest loginRequest, CancellationToken cancellationToken = default)
 	{
@@ -118,6 +131,70 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 		await _userManager.UpdateAsync(user);
 		return Result.Success();
 
+	}
+
+	public async Task<Result> SendResetPasswordCodeAsync(string email)
+	{
+		if (await _userManager.FindByEmailAsync(email) is not { } user)
+			return Result.Success();
+	
+		if (user.IsDisabled)
+			return Result.Failure(UserErrors.DisabledUser);
+
+		var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+		code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+		_logger.LogInformation("Reset password code: {code}", code);
+
+		// Send code through email
+		await SendResetPasswordEmail(user, code);
+
+		return Result.Success();
+	}
+
+	public async Task<Result> ResetPasswordAsync(ResetPasswordRequest request)
+	{
+		var user = await _userManager.FindByEmailAsync(request.Email);
+		if (user is null || !user.EmailConfirmed)
+			return Result.Failure(UserErrors.InvalidCode);
+
+		if (user.IsDisabled)
+			return Result.Failure(UserErrors.DisabledUser);
+
+		IdentityResult result;
+		try
+		{
+			var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(request.Code));
+			result = await _userManager.ResetPasswordAsync(user, code, request.NewPassword);
+		}
+		catch (FormatException)
+		{
+			result = IdentityResult.Failed(_userManager.ErrorDescriber.InvalidToken());
+		}
+		if (result.Succeeded)
+			return Result.Success();
+		else
+		{
+			var error = result.Errors.First();
+			return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status401Unauthorized));
+		}
+	}
+
+
+	private async Task SendResetPasswordEmail(ApplicationUser user, string code)
+	{
+		var origin = _httpContextAccessor.HttpContext?.Request.Headers.Origin;
+
+		var emailBody = EmailBodyBuilder.GenerateEmailBody("ForgetPassword",
+			templateModel: new Dictionary<string, string>
+			{
+				{ "{{name}}", user.FirstName },
+					{ "{{action_url}}", $"{origin}/auth/forgetPassword?email={user.Email}&code={code}" }
+			}
+		);
+
+		BackgroundJob.Enqueue(() => _emailSender.SendEmailAsync(user.Email!, "✅ Restaurant: Change Password", emailBody));
+		await Task.CompletedTask;
 	}
 
 	private static string GenerateRefreshToken()

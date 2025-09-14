@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RestaurantProject.Application.Interfaces.IAuthentication;
 using RestaurantProject.Application.Interfaces.IService;
@@ -18,6 +19,8 @@ public static class DependencyInjection
 
 		services.AddDbContext<ApplicationDbContext>(options =>
 			options.UseSqlServer(connectionString));
+
+		services.AddHttpContextAccessor();
 
 		services.AddSingleton<IJwtProvider, JwtProvider>();
 
@@ -42,6 +45,7 @@ public static class DependencyInjection
 		services.AddScoped<IMenuItemRatingService, MenuItemRatingService>();
 		services.AddScoped<IOrderService, OrderService>();
 		services.AddScoped<IInvoiceService, InvoiceService>();
+		services.AddScoped<IEmailSender, EmailService>();
 
 
 		return services;
