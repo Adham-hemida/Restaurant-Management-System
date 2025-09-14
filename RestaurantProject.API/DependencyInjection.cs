@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Hangfire;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using RestaurantProject.API.OpenApiTransformers;
 using RestaurantProject.Application.Settings;
@@ -13,7 +14,13 @@ namespace RestaurantProject.API
 				.AddEntityFrameworkStores<ApplicationDbContext>()
 				.AddDefaultTokenProviders();
 
+			services.AddBackgroundJobsConfig(configuration);
 			services.AddHttpContextAccessor();
+
+			services.AddOptions<MailSettings>()
+		       .BindConfiguration(nameof(MailSettings))
+		       .ValidateDataAnnotations()
+		       .ValidateOnStart();
 
 			services.AddOptions<JwtOptions>()
                 .Bind(configuration.GetSection(JwtOptions.sectionName))
@@ -55,6 +62,19 @@ namespace RestaurantProject.API
 				options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
 			});
 
+
+			return services;
+		}
+
+		private static IServiceCollection AddBackgroundJobsConfig(this IServiceCollection services, IConfiguration configuration)
+		{
+			services.AddHangfire(config => config
+			   .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+			   .UseSimpleAssemblyNameTypeSerializer()
+			   .UseRecommendedSerializerSettings()
+			   .UseSqlServerStorage(configuration.GetConnectionString("HangfireConnect")));
+
+			services.AddHangfireServer();
 
 			return services;
 		}
