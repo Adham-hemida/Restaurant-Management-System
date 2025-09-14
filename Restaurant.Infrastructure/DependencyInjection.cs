@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RestaurantProject.Application.Contracts.Invoice;
 using RestaurantProject.Application.Interfaces.IAuthentication;
 using RestaurantProject.Application.Interfaces.IService;
 using RestaurantProject.Domain.Interfaces;
@@ -34,6 +35,7 @@ public static class DependencyInjection
 		services.AddScoped<IMenuItemRatingRepository, MenuItemRatingRepository>();
 		services.AddScoped<IOrderRepository, OrderRepository>();
 		services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+		services.AddScoped<IRoleClaimRepository, RoleClaimRepository>();
 
 		services.AddScoped<IMenuCategoryService, MenuCategoryService>();
 		services.AddScoped<IMenuItemService, MenuItemService>();
