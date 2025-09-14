@@ -1,8 +1,10 @@
 ﻿using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using RestaurantProject.API.OpenApiTransformers;
 using RestaurantProject.Application.Settings;
+using RestaurantProject.Infrastructure.Permission;
 using System.Text;
 namespace RestaurantProject.API
 {
@@ -10,7 +12,7 @@ namespace RestaurantProject.API
 	{
 		public static IServiceCollection AddApiDependencies(this IServiceCollection services, IConfiguration configuration)
 		{
-			services.AddIdentity<ApplicationUser, IdentityRole>()
+			services.AddIdentity<ApplicationUser, ApplicationRole>()
 				.AddEntityFrameworkStores<ApplicationDbContext>()
 				.AddDefaultTokenProviders();
 
@@ -21,6 +23,9 @@ namespace RestaurantProject.API
 		       .BindConfiguration(nameof(MailSettings))
 		       .ValidateDataAnnotations()
 		       .ValidateOnStart();
+
+			services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
+			services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 
 			services.AddOptions<JwtOptions>()
                 .Bind(configuration.GetSection(JwtOptions.sectionName))
