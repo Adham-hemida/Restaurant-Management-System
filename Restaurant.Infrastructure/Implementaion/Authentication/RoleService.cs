@@ -96,11 +96,12 @@ public class RoleService(RoleManager<ApplicationRole> roleManager,
 		{
 			var currentPermissions = await _roleClaimRepository.GetClaimsOfRoleAsync(role.Id);
 
-			var newPermissions=request.Permissions.Except(currentPermissions)
-				.Select(x=>new IdentityRoleClaim<string> 
-				{ ClaimType=Permissions.Type,
-				  ClaimValue=x,
-				  RoleId=id
+			var newPermissions = request.Permissions.Except(currentPermissions)
+				.Select(x => new IdentityRoleClaim<string>
+				{
+					ClaimType = Permissions.Type,
+					ClaimValue = x,
+					RoleId = id
 				});
 
 			var removedPermissions = currentPermissions.Except(request.Permissions);
@@ -115,5 +116,16 @@ public class RoleService(RoleManager<ApplicationRole> roleManager,
 			var errors = result.Errors.First();
 			return Result.Failure(new Error(errors.Code, errors.Description, StatusCodes.Status400BadRequest));
 		}
+	}
+
+	public async Task<Result> ToggleStatusAsync(string id)
+	{
+		var role = await _roleManager.FindByIdAsync(id);
+		if (role is null)
+			return Result.Failure(RolesError.RoleNotFound);
+		role.IsDeleted = !role.IsDeleted;
+		await _roleManager.UpdateAsync(role);
+		return Result.Success();
+
 	}
 }

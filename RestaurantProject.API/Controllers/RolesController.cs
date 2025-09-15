@@ -45,4 +45,12 @@ public class RolesController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new UpdateRoleCommand(id, request));
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
+
+	[HttpPut("{id}/toggle-status")]
+	[HasPermission(Permissions.UpdateRoles)]
+	public async Task<IActionResult> ToggleStatus([FromRoute] string id)
+	{
+		var result = await _mediator.Send(new RoleToggleSatausCommand(id));
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 }
