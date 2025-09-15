@@ -19,4 +19,12 @@ public class RolesController(IMediator mediator) : ControllerBase
 		var roles = await _mediator.Send(new GetAllRolesQuery(includeDisabled),cancellationToken);
 		return Ok(roles);
 	}
+
+	[HttpGet("{id}")]
+	[HasPermission(Permissions.GetRoles)]
+	public async Task<IActionResult> Get([FromRoute] string id)
+	{
+		var result = await _mediator.Send(new GetRoleQuery(id));
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
 }
