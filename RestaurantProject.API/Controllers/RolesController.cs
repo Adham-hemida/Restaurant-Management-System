@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantProject.Application.Abstractions.Consts;
+using RestaurantProject.Application.Contracts.Role;
+using RestaurantProject.Application.Features.Role.Commands.Models;
 using RestaurantProject.Application.Features.Role.Queries.Models;
 using RestaurantProject.Infrastructure.Permission;
 
@@ -27,4 +29,14 @@ public class RolesController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new GetRoleQuery(id));
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
+
+	[HttpPost("")]
+	[HasPermission(Permissions.AddRoles)]
+	public async Task<IActionResult> Add([FromBody] RoleRequest request)
+	{
+		var result = await _mediator.Send(new AddRoleCommands(request));
+		return result.IsSuccess ? CreatedAtAction(nameof(Get), new { result.Value.Id }, result.Value) : result.ToProblem();
+	}
+
+
 }

@@ -29,4 +29,10 @@ public class RoleClaimRepository(UserManager<ApplicationUser> userManager, Appli
 
 		return (userRoles, userPermissions);
 	}
+
+	public async Task AddClaimsAsync(IEnumerable<IdentityRoleClaim<string>> claims, CancellationToken cancellationToken = default)
+	{
+		await _context.RoleClaims.AddRangeAsync(claims, cancellationToken);
+		await _context.SaveChangesAsync(cancellationToken);
+	}
 }
