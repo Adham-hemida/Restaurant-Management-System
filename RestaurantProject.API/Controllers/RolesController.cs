@@ -38,5 +38,11 @@ public class RolesController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? CreatedAtAction(nameof(Get), new { result.Value.Id }, result.Value) : result.ToProblem();
 	}
 
-
+	[HttpPut("{id}")]
+	[HasPermission(Permissions.UpdateRoles)]
+	public async Task<IActionResult> Update([FromRoute] string id, [FromBody] RoleRequest request)
+	{
+		var result = await _mediator.Send(new UpdateRoleCommand(id, request));
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 }
