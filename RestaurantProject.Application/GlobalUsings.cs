@@ -17,4 +17,5 @@ global using RestaurantProject.Application.Contracts.OrderItem;
 global using RestaurantProject.Application.Features.OrderItem.Commands.Models;
 global using RestaurantProject.Application.Contracts.Order;
 global using RestaurantProject.Application.Features.Order.Queries.Models;
-
+global using RestaurantProject.Application.Contracts.Role;
+global using RestaurantProject.Application.Features.Role.Queries.Models;
