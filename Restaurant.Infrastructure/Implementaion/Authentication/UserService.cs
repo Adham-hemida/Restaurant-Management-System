@@ -14,6 +14,16 @@ public class UserService(UserManager<ApplicationUser> userManager,
 	private readonly UserManager<ApplicationUser> _userManager = userManager;
 	private readonly IRoleService _roleService = roleService;
 
+	public async Task<Result<UserResponse>> GetAsync(string userId)
+	{
+		if(await _userManager.FindByIdAsync(userId) is not { } user)
+			return Result.Failure<UserResponse>(UserErrors.UserNotFound);
+
+		var roles = await _userManager.GetRolesAsync(user);
+		var response = (user, roles).Adapt<UserResponse>();
+		return Result.Success(response);
+	}
+
 	public async Task<Result<UserResponse>> CreateAsync(CreateUserRequest request, CancellationToken cancellationToken = default)
 	{
 		var emailIsExist = await _userManager.Users.AnyAsync(x=>x.Email==request.Email,cancellationToken);
