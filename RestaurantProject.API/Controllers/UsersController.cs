@@ -46,4 +46,11 @@ public class UsersController(IMediator mediator) : ControllerBase
 		return result.IsSuccess ? NoContent() : result.ToProblem();
 	}
 
+	[HttpPut("{id}/unlock")]
+	[HasPermission(Permissions.UpdateUsers)]
+	public async Task<IActionResult> Unlock([FromRoute] string id)
+	{
+		var result = await _mediator.Send(new UnLockUserCommand(id));
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 }
