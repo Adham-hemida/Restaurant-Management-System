@@ -9,4 +9,5 @@ public interface IUserService
 	Task<Result> ToggleStatusAsync(string id);
 	Task<Result> UnlockAsync(string id);
 	Task<Result<UserProfileResponse>> GetProfileInfoAsync(string userId);
+	Task<Result> UpdateProfileAsync(string userId, UpdateProfileRequest request);
 }

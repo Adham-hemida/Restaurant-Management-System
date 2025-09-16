@@ -94,6 +94,18 @@ public class UserService(UserManager<ApplicationUser> userManager,
 		return Result.Success(user);
 	}
 
+	public async Task<Result> UpdateProfileAsync(string userId, UpdateProfileRequest request)
+	{
+		var user = await _userManager.Users
+			.Where(x => x.Id == userId)
+			.ExecuteUpdateAsync(setter =>
+				setter.SetProperty(x => x.FirstName, request.FirstName)
+					.SetProperty(x => x.LastName, request.LastName)
+			);
+
+		return Result.Success();
+	}
+
 	public async Task<Result> ToggleStatusAsync(string id)
 	{
 		if (await _userManager.FindByIdAsync(id) is not { } user)
