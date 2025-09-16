@@ -37,4 +37,20 @@ public class UsersController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new UpdateUserCommand(id, request), cancellationToken);
 		return result.IsSuccess ? NoContent(): result.ToProblem();
 	}
+
+	[HttpPut("{id}/toggle-status")]
+	[HasPermission(Permissions.UpdateUsers)]
+	public async Task<IActionResult> ToggleStatus([FromRoute] string id)
+	{
+		var result = await _mediator.Send(new ToggleUserStatusCommand(id));
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
+
+	[HttpPut("{id}/unlock")]
+	[HasPermission(Permissions.UpdateUsers)]
+	public async Task<IActionResult> Unlock([FromRoute] string id)
+	{
+		var result = await _mediator.Send(new UnLockUserCommand(id));
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 }
