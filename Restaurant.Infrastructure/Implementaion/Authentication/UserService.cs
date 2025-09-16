@@ -9,9 +9,11 @@ using RestaurantProject.Application.Interfaces.IAuthentication;
 
 namespace RestaurantProject.Infrastructure.Implementaion.Authentication;
 public class UserService(UserManager<ApplicationUser> userManager,
+	IRoleRepository roleRepository,
 	IRoleService roleService) : IUserService
 {
 	private readonly UserManager<ApplicationUser> _userManager = userManager;
+	private readonly IRoleRepository _roleRepository = roleRepository;
 	private readonly IRoleService _roleService = roleService;
 
 	public async Task<Result<UserResponse>> GetAsync(string userId)
@@ -50,6 +52,37 @@ public class UserService(UserManager<ApplicationUser> userManager,
 			var error = result.Errors.First();
 			return Result.Failure<UserResponse>(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest)); 
 		}
+	}
+
+	public async Task<Result> UpdateAsync(string userId, UpdateUserRequest request, CancellationToken cancellationToken = default)
+	{
+		if (await _userManager.FindByIdAsync(userId) is not { } user)
+			return Result.Failure(UserErrors.UserNotFound);
+
+		var emailIsExist = await _userManager.Users.AnyAsync(x => x.Email == request.Email && x.Id != userId, cancellationToken);
+
+		if (emailIsExist)
+			return Result.Failure(UserErrors.DuplicatedEmail);
+
+		var allowRoles = await _roleService.GetAllAsync(cancellationToken: cancellationToken);
+
+		if (request.Roles.Except(allowRoles.Select(x => x.Name)).Any())
+			return Result.Failure(UserErrors.InvalidRoles);
+
+		user= request.Adapt(user);
+		var result = await _userManager.UpdateAsync(user);
+		if (result.Succeeded)
+		{
+			await _roleRepository.DeleteRolesOfUserAsync(user.Id, cancellationToken);
+			await _userManager.AddToRolesAsync(user, request.Roles);
+			return Result.Success();
+		}
+		else
+		{
+			var error = result.Errors.First();
+			return Result.Failure(new Error(error.Code, error.Description, StatusCodes.Status400BadRequest));
+		}
+
 
 
 	}

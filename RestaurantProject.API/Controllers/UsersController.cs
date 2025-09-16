@@ -29,4 +29,12 @@ public class UsersController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new CreateUserCommand(request), cancellationToken);
 		return result.IsSuccess ? CreatedAtAction(nameof(Get), new { id = result.Value.Id }, result.Value) : result.ToProblem();
 	}
+
+	[HttpPut("{id}")]
+	[HasPermission(Permissions.UpdateUsers)]
+	public async Task<IActionResult> Update([FromRoute] string id, [FromBody] UpdateUserRequest request, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new UpdateUserCommand(id, request), cancellationToken);
+		return result.IsSuccess ? NoContent(): result.ToProblem();
+	}
 }
