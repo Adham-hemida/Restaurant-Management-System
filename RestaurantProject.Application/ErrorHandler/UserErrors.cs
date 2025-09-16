@@ -31,4 +31,7 @@ public record UserErrors
 	public static readonly Error InvalidCode =
       new("User.InvalidCode", "Invalid code", StatusCodes.Status401Unauthorized);
 
+	public static readonly Error InvalidRoles =
+	   new("User.InvalidRoles", "Invalid roles", StatusCodes.Status400BadRequest);
+
 }
