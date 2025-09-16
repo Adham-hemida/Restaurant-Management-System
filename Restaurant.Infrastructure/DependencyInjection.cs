@@ -36,6 +36,7 @@ public static class DependencyInjection
 		services.AddScoped<IOrderRepository, OrderRepository>();
 		services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 		services.AddScoped<IRoleClaimRepository, RoleClaimRepository>();
+		services.AddScoped<IRoleRepository, RoleRepository>();
 
 		services.AddScoped<IMenuCategoryService, MenuCategoryService>();
 		services.AddScoped<IMenuItemService, MenuItemService>();
