@@ -28,4 +28,11 @@ public class AccountsController(IMediator mediator) : ControllerBase
 		await _mediator.Send(new UpdateProfileCommand(User.GetUserId()!, request));
 		return NoContent();
 	}
+
+	[HttpPut("change-password")]
+	public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+	{
+		var result = await _mediator.Send(new ChangePasswordCommand(User.GetUserId()!, request));
+		return result.IsSuccess ? NoContent() : result.ToProblem();
+	}
 }
