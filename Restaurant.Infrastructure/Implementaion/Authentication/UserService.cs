@@ -84,6 +84,16 @@ public class UserService(UserManager<ApplicationUser> userManager,
 		}
 	}
 
+	public async Task<Result<UserProfileResponse>> GetProfileInfoAsync(string userId)
+	{
+		var user = await _userManager.Users
+		   .Where(x => x.Id == userId)
+		   .ProjectToType<UserProfileResponse>()
+		   .SingleAsync();
+
+		return Result.Success(user);
+	}
+
 	public async Task<Result> ToggleStatusAsync(string id)
 	{
 		if (await _userManager.FindByIdAsync(id) is not { } user)
