@@ -26,4 +26,11 @@ public class DashboardsController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new GetDailyOrdersByStatusQuery(date), cancellationToken);
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
+
+	[HttpGet("top-menu-items")]
+	public async Task<IActionResult> GetTopMenuItems([FromQuery] DateTime date, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetTopMenuItemsQuery(date), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
 }
