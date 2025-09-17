@@ -50,6 +50,7 @@ public static class DependencyInjection
 		services.AddScoped<IInvoiceService, InvoiceService>();
 		services.AddScoped<IEmailSender, EmailService>();
 		services.AddScoped<IRoleService, RoleService>();
+		services.AddScoped<IDashboardService, DashboardService>();
 
 
 		return services;
