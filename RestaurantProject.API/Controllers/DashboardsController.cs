@@ -19,4 +19,11 @@ public class DashboardsController(IMediator mediator) : ControllerBase
 		var result = await _mediator.Send(new GetDailyRevenueQuery(date), cancellationToken);
 		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
 	}
+
+	[HttpGet("orders-by-status")]
+	public async Task<IActionResult> GetOrdersByStatus([FromQuery] DateTime date, CancellationToken cancellationToken)
+	{
+		var result = await _mediator.Send(new GetDailyOrdersByStatusQuery(date), cancellationToken);
+		return result.IsSuccess ? Ok(result.Value) : result.ToProblem();
+	}
 }
