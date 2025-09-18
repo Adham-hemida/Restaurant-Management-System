@@ -39,6 +39,7 @@ app.UseHangfireDashboard("/jobs", new DashboardOptions
 	DashboardTitle = "Restaurant System Jobs"
 });
 
+app.UseCors();
 app.UseAuthorization();
 
 app.MapControllers();

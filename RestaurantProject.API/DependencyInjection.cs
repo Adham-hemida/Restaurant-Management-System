@@ -12,6 +12,17 @@ namespace RestaurantProject.API
 	{
 		public static IServiceCollection AddApiDependencies(this IServiceCollection services, IConfiguration configuration)
 		{
+			var allowOrigins = configuration.GetSection("AllowOrigins").Get<string[]>();
+
+			services.AddCors(options =>
+			options.AddDefaultPolicy(bulider =>
+			{
+				bulider.AllowAnyMethod()
+				.AllowAnyHeader()
+				.WithOrigins(allowOrigins!);
+			}));
+
+
 			services.AddIdentity<ApplicationUser, ApplicationRole>()
 				.AddEntityFrameworkStores<ApplicationDbContext>()
 				.AddDefaultTokenProviders();
