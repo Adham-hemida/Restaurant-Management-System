@@ -1,11 +1,16 @@
 ﻿using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using RestaurantProject.API.OpenApiTransformers;
+using RestaurantProject.Application.Abstractions.Consts;
 using RestaurantProject.Application.Settings;
+using RestaurantProject.Infrastructure.Health;
 using RestaurantProject.Infrastructure.Permission;
 using System.Text;
+using System.Threading.RateLimiting;
 namespace RestaurantProject.API
 {
 	public static class DependencyInjection
@@ -27,21 +32,29 @@ namespace RestaurantProject.API
 				.AddEntityFrameworkStores<ApplicationDbContext>()
 				.AddDefaultTokenProviders();
 
-			services.AddBackgroundJobsConfig(configuration);
+			services.AddBackgroundJobsConfig(configuration)
+				.AddRatingLimitConfig();
+
+			services.AddHealthChecks()
+				 .AddSqlServer(name: "database", connectionString: configuration.GetConnectionString("DefaultConnection")!)
+				 .AddHangfire(options => { options.MinimumAvailableServers = 1; })
+				 .AddCheck<MailProviderHealthCheck>(name: "mail service");
+
+
 			services.AddHttpContextAccessor();
 
 			services.AddOptions<MailSettings>()
-		       .BindConfiguration(nameof(MailSettings))
-		       .ValidateDataAnnotations()
-		       .ValidateOnStart();
+			   .BindConfiguration(nameof(MailSettings))
+			   .ValidateDataAnnotations()
+			   .ValidateOnStart();
 
 			services.AddTransient<IAuthorizationHandler, PermissionAuthorizationHandler>();
 			services.AddTransient<IAuthorizationPolicyProvider, PermissionAuthorizationPolicyProvider>();
 
 			services.AddOptions<JwtOptions>()
-                .Bind(configuration.GetSection(JwtOptions.sectionName))
-                .ValidateDataAnnotations()
-                 .ValidateOnStart();
+				.Bind(configuration.GetSection(JwtOptions.sectionName))
+				.ValidateDataAnnotations()
+				 .ValidateOnStart();
 
 			var JwtSettings = configuration.GetSection(JwtOptions.sectionName).Get<JwtOptions>();
 
@@ -92,6 +105,34 @@ namespace RestaurantProject.API
 
 			services.AddHangfireServer();
 
+			return services;
+		}
+
+
+		private static IServiceCollection AddRatingLimitConfig(this IServiceCollection services)
+		{
+			services.AddRateLimiter(rateLimitterOptions =>
+			{
+				rateLimitterOptions.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+				rateLimitterOptions.AddPolicy(RateLimiters.IpLimiter, httpContext =>
+				RateLimitPartition.GetFixedWindowLimiter(
+					partitionKey: httpContext.Connection.RemoteIpAddress?.ToString(),
+					factory: _ => new FixedWindowRateLimiterOptions
+					{
+						PermitLimit = 2,
+						Window = TimeSpan.FromSeconds(20)
+					}
+				));
+
+				rateLimitterOptions.AddFixedWindowLimiter(RateLimiters.FixedWindow, options =>
+				{
+					options.Window = TimeSpan.FromSeconds(10); 
+					options.PermitLimit = 10;    
+					options.QueueLimit = 5;
+					options.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+				});
+			});
 			return services;
 		}
 	}
