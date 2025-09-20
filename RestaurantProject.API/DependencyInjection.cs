@@ -31,7 +31,13 @@ namespace RestaurantProject.API
 				.AddEntityFrameworkStores<ApplicationDbContext>()
 				.AddDefaultTokenProviders();
 
-			services.AddBackgroundJobsConfig(configuration);
+			services.AddBackgroundJobsConfig(configuration)
+				.AddRatingLimitConfig();
+
+			services.AddHealthChecks()
+				 .AddSqlServer(name: "database", connectionString: configuration.GetConnectionString("DefaultConnection")!);
+
+
 			services.AddHttpContextAccessor();
 
 			services.AddOptions<MailSettings>()
