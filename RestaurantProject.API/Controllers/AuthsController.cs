@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using RestaurantProject.Application.Abstractions.Consts;
 using RestaurantProject.Application.Contracts.Authentication;
 using RestaurantProject.Application.Features.Authentication.Commands.Models;
 using RestaurantProject.Application.Interfaces.IAuthentication;
@@ -16,6 +18,7 @@ public class AuthsController(IMediator mediator) : ControllerBase
 	private readonly IMediator _mediator = mediator;
 
 	[HttpPost("")]
+	[EnableRateLimiting(RateLimiters.IpLimiter)]
 	public async Task<IActionResult> Login([FromBody] Application.Contracts.Authentication.LoginRequest request, CancellationToken cancellationToken = default)
 	{
 		var authResult = await _mediator.Send(new LoginUserCommand(request),cancellationToken);

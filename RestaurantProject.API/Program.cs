@@ -45,4 +45,5 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapStaticAssets();
 app.UseExceptionHandler();
+app.UseRateLimiter();
 app.Run();

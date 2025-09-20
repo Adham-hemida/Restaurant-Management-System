@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RestaurantProject.Application.Abstractions.Consts;
 using RestaurantProject.Application.Contracts.Common;
 using RestaurantProject.Application.Contracts.Order;
@@ -45,6 +46,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
 	}
 
 	[HttpPost("")]
+	[EnableRateLimiting(RateLimiters.FixedWindow)]
 	[HasPermission(Permissions.AddOrders)]
 	public async Task<IActionResult> Create( [FromBody] OrderRequest request, CancellationToken cancellationToken)
 	{
