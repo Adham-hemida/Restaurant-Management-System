@@ -35,7 +35,8 @@ namespace RestaurantProject.API
 				.AddRatingLimitConfig();
 
 			services.AddHealthChecks()
-				 .AddSqlServer(name: "database", connectionString: configuration.GetConnectionString("DefaultConnection")!);
+				 .AddSqlServer(name: "database", connectionString: configuration.GetConnectionString("DefaultConnection")!)
+				 .AddHangfire(options => { options.MinimumAvailableServers = 1; });
 
 
 			services.AddHttpContextAccessor();
