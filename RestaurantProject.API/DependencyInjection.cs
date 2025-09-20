@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using RestaurantProject.API.OpenApiTransformers;
 using RestaurantProject.Application.Abstractions.Consts;
 using RestaurantProject.Application.Settings;
+using RestaurantProject.Infrastructure.Health;
 using RestaurantProject.Infrastructure.Permission;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -36,7 +37,8 @@ namespace RestaurantProject.API
 
 			services.AddHealthChecks()
 				 .AddSqlServer(name: "database", connectionString: configuration.GetConnectionString("DefaultConnection")!)
-				 .AddHangfire(options => { options.MinimumAvailableServers = 1; });
+				 .AddHangfire(options => { options.MinimumAvailableServers = 1; })
+				 .AddCheck<MailProviderHealthCheck>(name: "mail service");
 
 
 			services.AddHttpContextAccessor();
