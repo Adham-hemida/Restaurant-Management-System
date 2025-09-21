@@ -1,7 +1,7 @@
 # 🍽️ Restaurant Management System API
 
 ## 📖 Introduction
-The **Restaurant Management System API** is a comprehensive backend solution for managing **restaurants**, built with **ASP.NET Core 9** and following **Clean Architecture** principles.  
+The **Restaurant Management System API** is a comprehensive backend solution for managing **restaurants**, built with **ASP.NET Core Web API** and following **Clean Architecture** principles.  
 
 ---
 ## 🚀 Features
