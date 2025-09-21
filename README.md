@@ -9,7 +9,7 @@ The **Restaurant Management System API** is a comprehensive backend solution for
   - Secure login with JWT and Refresh Tokens
   - **Claims-based Authorization relies on permissions rather than fixed roles, making the system more flexible and scalable.**
   - Password reset & account management
-## User & Role Management
+- **User & Role Management**
   - The system provides full user and role management integrated with the claims-based permission system.
     Administrators can manage users, assign permissions, and control account statuses. Roles serve as permission bundles, but access is still enforced at the permission level.
 - **Orders Management**
